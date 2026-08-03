@@ -346,8 +346,24 @@ explicit = true
 [tool.hatch.metadata]
 allow-direct-references = true
 
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src",
+  "/tests/pytest",
+]
+
+exclude = [
+  "*.json",
+  "pkg/_compat.py",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/dve", "src/vce"]
+artifacts = [
+  "*.so",
+  "!/node_modules/*.so",
+]
 
 # --- [uv_build] ---------------------------------------------------
 

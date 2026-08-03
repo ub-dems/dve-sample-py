@@ -1993,13 +1993,367 @@ TODO:(a2-vibe) ...
 
 # A:a
 
-## A:a - **TODO:(aa-title)**
+## A:a - **GitLab Pipeline Context**
 
 [^](#toc)
 
-## Appendix a
+## Pipeline Job Environment (downstream)
 
-TODO:(aa-text) ...
+Downstream job environment on commit (develop)
+
+``` bash
+ACR_REGISTRY='[MASKED]'
+ACR_RESOURCE='[MASKED]'
+CI='true'
+CI_API_GRAPHQL_URL='https://gitlab.com/api/graphql'
+CI_API_V4_URL='https://gitlab.com/api/v4'
+CI_BUILDS_DIR='/builds'
+CI_COMMIT_AUTHOR='[MASKED]'
+CI_COMMIT_BEFORE_SHA='d8fac9624ef874027f941ea6bb21185671846ba0'
+CI_COMMIT_BRANCH='main'
+CI_COMMIT_DEFAULT_BRANCH_BASE_SHA='b848586279993d79c8533665a495a93c208a4220'
+CI_COMMIT_DESCRIPTION=''
+CI_COMMIT_MESSAGE='Merge branch "develop" into "main"'
+CI_COMMIT_MESSAGE_IS_TRUNCATED='false'
+CI_COMMIT_REF_NAME='main'
+CI_COMMIT_REF_PROTECTED='true'
+CI_COMMIT_REF_SLUG='main'
+CI_COMMIT_SHA='343d0e27e88cb8df472b27316d7845b009c40410'
+CI_COMMIT_SHORT_SHA='343d0e27'
+CI_COMMIT_TIMESTAMP='2026-07-31T19:38:51+02:00'
+CI_COMMIT_TITLE='Merge branch "develop" into "main"'
+CI_COMMIT_USER_LOGIN=''
+CI_CONCURRENT_ID='111'
+CI_CONCURRENT_PROJECT_ID='0'
+CI_CONFIG_PATH='.gitlab-ci.yml'
+CI_CONFIG_REF_URI='gitlab.com/ub-dems/vs-base/dve-sample-py//.gitlab-ci.yml@refs/heads/main'
+CI_DEFAULT_BRANCH='develop'
+CI_DEFAULT_BRANCH_SLUG='develop'
+CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX='gitlab.com:443/ub-dems/vs-base/dependency_proxy/containers'
+CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX='gitlab.com:443/ub-dems/dependency_proxy/containers'
+CI_DEPENDENCY_PROXY_PASSWORD='[MASKED]'
+CI_DEPENDENCY_PROXY_SERVER='gitlab.com:443'
+CI_DEPENDENCY_PROXY_USER='gitlab-ci-token'
+CI_DISPOSABLE_ENVIRONMENT='true'
+CI_JOB_GROUP_NAME='debug-pipeline'
+CI_JOB_ID='15651125844'
+CI_JOB_IMAGE='python:3.14-slim'
+CI_JOB_NAME='debug-pipeline'
+CI_JOB_NAME_SLUG='debug-pipeline'
+CI_JOB_STAGE='debug'
+CI_JOB_STARTED_AT='2026-07-31T17:39:09Z'
+CI_JOB_STARTED_AT_SLUG='2026-07-31t17-39-09z'
+CI_JOB_STATUS='running'
+CI_JOB_TAGS='["saas-linux-small-amd64"]'
+CI_JOB_TIMEOUT='3600'
+CI_JOB_TOKEN='[MASKED]'
+CI_JOB_URL='https://gitlab.com/ub-dems/vs-base/dve-sample-py/-/jobs/15651125844'
+CI_NODE_TOTAL='1'
+CI_PAGES_DOMAIN='gitlab.io'
+CI_PAGES_HOSTNAME='dve-sample-py-3adb27.gitlab.io'
+CI_PAGES_URL='https://dve-sample-py-3adb27.gitlab.io'
+CI_PIPELINE_CREATED_AT='2026-07-31T17:38:52Z'
+CI_PIPELINE_ID='2722508965'
+CI_PIPELINE_IID='8'
+CI_PIPELINE_NAME=''
+CI_PIPELINE_SOURCE='push'
+CI_PIPELINE_URL='https://gitlab.com/ub-dems/vs-base/dve-sample-py/-/pipelines/2722508965'
+CI_PROJECT_CLASSIFICATION_LABEL=''
+CI_PROJECT_DESCRIPTION=''
+CI_PROJECT_DIR='/builds/ub-dems/vs-base/dve-sample-py'
+CI_PROJECT_ID='84970463'
+CI_PROJECT_NAME='dve-sample-py'
+CI_PROJECT_NAMESPACE='ub-dems/vs-base'
+CI_PROJECT_NAMESPACE_ID='136875995'
+CI_PROJECT_NAMESPACE_SLUG='ub-dems-vs-base'
+CI_PROJECT_PATH='ub-dems/vs-base/dve-sample-py'
+CI_PROJECT_PATH_SLUG='ub-dems-vs-base-dve-sample-py'
+CI_PROJECT_REPOSITORY_LANGUAGES='jupyter notebook,python,shell,tex,makefile'
+CI_PROJECT_ROOT_NAMESPACE='ub-dems'
+CI_PROJECT_ROOT_NAMESPACE_SLUG='ub-dems'
+CI_PROJECT_TITLE='dve-sample-py'
+CI_PROJECT_TOPICS=''
+CI_PROJECT_URL='https://gitlab.com/ub-dems/vs-base/dve-sample-py'
+CI_PROJECT_VISIBILITY='private'
+CI_REGISTRY='registry.gitlab.com'
+CI_REGISTRY_IMAGE='registry.gitlab.com/ub-dems/vs-base/dve-sample-py'
+CI_REGISTRY_PASSWORD='[MASKED]'
+CI_REGISTRY_USER='gitlab-ci-token'
+CI_REPOSITORY_URL='https://gitlab-ci-token:[MASKED]@gitlab.com/ub-dems/vs-base/dve-sample-py.git'
+CI_RUNNER_DESCRIPTION='1-green.saas-linux-small-amd64.runners-manager.gitlab.com/default'
+CI_RUNNER_EXECUTABLE_ARCH='linux/amd64'
+CI_RUNNER_ID='12270845'
+CI_RUNNER_REVISION='471b878c'
+CI_RUNNER_SHORT_TOKEN='JLgUopmMV'
+CI_RUNNER_TAGS='["gitlab--duo", "saas-linux-small-amd64"]'
+CI_RUNNER_VERSION='19.2.0~pre.1355.g471b878c'
+CI_SERVER='yes'
+CI_SERVER_FQDN='gitlab.com'
+CI_SERVER_HOST='gitlab.com'
+CI_SERVER_NAME='GitLab'
+CI_SERVER_PORT='443'
+CI_SERVER_PROTOCOL='https'
+CI_SERVER_REVISION='1e4d2cb6f74'
+CI_SERVER_SHELL_SSH_HOST='gitlab.com'
+CI_SERVER_SHELL_SSH_PORT='22'
+CI_SERVER_TLS_CA_FILE='/builds/ub-dems/vs-base/dve-sample-py.tmp/CI_SERVER_TLS_CA_FILE'
+CI_SERVER_URL='https://gitlab.com'
+CI_SERVER_VERSION='19.3.0-pre'
+CI_SERVER_VERSION_MAJOR='19'
+CI_SERVER_VERSION_MINOR='3'
+CI_SERVER_VERSION_PATCH='0'
+CI_TEMPLATE_REGISTRY_HOST='registry.gitlab.com'
+CI_TRACEPARENT='00-000000000000000000000000a24630a5-d57d4350c5866fa0-01'
+CI_TRACESTATE='gitlab=pipeline:2722508965;job:15651125844'
+DOCKER_DRIVER='overlay2'
+DOCKER_IPTABLES_LEGACY='1'
+DOCKER_TLS_CERTDIR=''
+DOWNSTREAM_PROJECT_PATH='ub-dems/vs-base/dve-sample-py'
+E_UV_INDEX_TORCH_GPU='https://download.pytorch.org/whl/cu130'
+FF_CLEAN_UP_FAILED_CACHE_EXTRACT='false'
+FF_CONCRETE='false'
+FF_DISABLE_AUTOMATIC_TOKEN_ROTATION='false'
+FF_DISABLE_POWERSHELL_STDIN='false'
+FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR='false'
+FF_DISABLE_UMASK_FOR_KUBERNETES_EXECUTOR='false'
+FF_ENABLE_BASH_EXIT_CODE_CHECK='false'
+FF_ENABLE_JOB_CLEANUP='false'
+FF_ENABLE_JOB_INPUTS_INTERPOLATION='true'
+FF_EXPORT_HIGH_CARDINALITY_METRICS='false'
+FF_GIT_URLS_WITHOUT_TOKENS='false'
+FF_HASH_CACHE_KEYS='true'
+FF_KUBERNETES_HONOR_ENTRYPOINT='false'
+FF_LOG_IMAGES_CONFIGURED_FOR_JOB='false'
+FF_MASK_ALL_DEFAULT_TOKENS='true'
+FF_NETWORK_PER_BUILD='false'
+FF_POSIXLY_CORRECT_ESCAPES='false'
+FF_PRINT_POD_EVENTS='false'
+FF_RESOLVE_FULL_TLS_CHAIN='false'
+FF_SCRIPT_SECTIONS='false'
+FF_SCRIPT_TO_STEP_MIGRATION='false'
+FF_SECRET_RESOLVING_FAILS_IF_MISSING='true'
+FF_SET_PERMISSIONS_BEFORE_CLEANUP='true'
+FF_SKIP_NOOP_BUILD_STAGES='true'
+FF_SUSPENDABLE_ENVIRONMENTS='false'
+FF_TEST_FEATURE='false'
+FF_TIMESTAMPS='true'
+FF_USE_ADAPTIVE_REQUEST_CONCURRENCY='true'
+FF_USE_ADVANCED_POD_SPEC_CONFIGURATION='false'
+FF_USE_DIRECT_DOWNLOAD='true'
+FF_USE_DOCKER_AUTOSCALER_DIAL_STDIO='true'
+FF_USE_DUMB_INIT_WITH_KUBERNETES_EXECUTOR='false'
+FF_USE_DYNAMIC_TRACE_FORCE_SEND_INTERVAL='false'
+FF_USE_EXPONENTIAL_BACKOFF_STAGE_RETRY='true'
+FF_USE_FASTZIP='false'
+FF_USE_FLEETING_ACQUIRE_HEARTBEATS='false'
+FF_USE_GITALY_CORRELATION_ID='true'
+FF_USE_GIT_BUNDLE_URIS='true'
+FF_USE_GIT_NATIVE_CLONE='false'
+FF_USE_GIT_PROACTIVE_AUTH='true'
+FF_USE_INIT_WITH_DOCKER_EXECUTOR='false'
+FF_USE_JOB_ROUTER='false'
+FF_USE_LEGACY_BASH_EVAL='false'
+FF_USE_LEGACY_GCS_CACHE_ADAPTER='false'
+FF_USE_LEGACY_KUBERNETES_EXECUTION_STRATEGY='false'
+FF_USE_LEGACY_S3_CACHE_ADAPTER='false'
+FF_USE_NATIVE_CONTAINER_STOP='false'
+FF_USE_NEW_BASH_EVAL_STRATEGY='false'
+FF_USE_PARALLEL_ARTIFACT_TRANSFER='false'
+FF_USE_PARALLEL_CACHE_TRANSFER='false'
+FF_USE_POD_ACTIVE_DEADLINE_SECONDS='true'
+FF_USE_POWERSHELL_PATH_RESOLVER='false'
+FF_USE_WINDOWS_JOB_OBJECT='false'
+FF_USE_WINDOWS_LEGACY_PROCESS_STRATEGY='false'
+FF_WAIT_FOR_POD_TO_BE_REACHABLE='false'
+GITLAB_CI='true'
+GITLAB_ENV='/builds/ub-dems/vs-base/dve-sample-py.tmp/gitlab_runner_env'
+GITLAB_FEATURES='audit_events,blocked_issues,blocked_work_items,board_iteration_lists,code_owners,code_review_analytics,full_codequality_report,group_activity_analytics,group_bulk_edit,issuable_default_templates,issue_weights,iterations,ldap_group_sync,merge_request_approvers,milestone_charts,multiple_issue_assignees,multiple_ldap_servers,multiple_merge_request_assignees,multiple_merge_request_reviewers,project_merge_request_analytics,protected_refs_for_users,push_rules,resource_access_token,seat_link,seat_usage_quotas,pipelines_usage_quotas,transfer_usage_quotas,wip_limits,zoekt_code_search,seat_control,usage_billing,group_usage_billing,description_diffs,send_emails_from_admin_area,repository_size_limit,maintenance_mode,scoped_issue_board,contribution_analytics,group_webhooks,member_lock,elastic_search,repository_mirrors,ai_chat,ai_catalog,ai_workflows,ai_analytics,admin_audit_log,agent_managed_resources,agentic_chat,allow_personal_snippets,prevent_enterprise_user_account_deletion,auditor_user,blocking_merge_requests,board_assignee_lists,board_milestone_lists,ci_job_analytics_for_projects,ci_pipeline_cancellation_restrictions,ci_secrets_management,cluster_agents_ci_impersonation,cluster_agents_user_impersonation,cluster_deployments,code_owner_approval_required,code_suggestions,commit_committer_check,commit_committer_name_check,compliance_framework,configurable_work_item_types,container_virtual_registry,custom_compliance_frameworks,custom_fields,custom_file_templates,custom_project_templates,cycle_analytics_for_groups,cycle_analytics_for_projects,data_management,db_load_balancing,default_branch_protection_restriction_in_groups,default_project_deletion_protection,delete_unconfirmed_users,dependency_firewall,dependency_proxy_for_packages,disable_extensions_marketplace_for_enterprise_users,disable_name_update_for_users,disable_personal_access_tokens,disable_ssh_keys,domain_verification,epic_colors,epics,extended_audit_events,external_authorization_service_api_management,feature_flags_code_references,file_locks,geo,generic_alert_fingerprinting,git_two_factor_enforcement,group_allowed_email_domains,group_ci_cd_analytics_pipelines,group_coverage_reports,group_forking_protection,group_level_analytics_dashboard,group_level_compliance_dashboard,group_milestone_project_releases,group_project_templates,group_repository_analytics,group_saml,group_scoped_ci_variables,ide_schema_config,incident_metric_upload,increased_saved_views_limit,instance_level_scim,jira_issues_integration,ldap_group_sync_filter,linked_items_epics,merge_request_performance_metrics,merge_request_title_regex_check,admin_merge_request_approvers_rules,merge_trains,metrics_reports,mcp_server,multiple_alert_http_integrations,multiple_approval_rules,multiple_group_issue_boards,object_storage,microsoft_group_sync,operations_dashboard,orbit,package_forwarding,packages_virtual_registry,pages_size_limit,pages_multiple_versions,productivity_analytics,project_aliases,project_level_analytics_dashboard,protected_environments,reject_non_dco_commits,reject_unsigned_commits,related_epics,remote_development,saml_group_sync,semantic_code_search,scoped_labels,smartcard_auth,ssh_certificates,swimlanes,target_branch_rules,troubleshoot_job,type_of_work_analytics,minimal_access_role,unprotection_restrictions,ci_project_subscriptions,incident_timeline_view,oncall_schedules,escalation_policies,zentao_issues_integration,coverage_check_approval_rule,issuable_resource_links,group_protected_branches,group_level_merge_checks_setting,oidc_client_groups_claim,disable_deleting_account_for_users,disable_private_profiles,group_saved_replies,requested_changes_block_merge_request,project_saved_replies,default_roles_assignees,ci_component_usages_in_projects,ci_cd_catalog_publish_restriction,branch_rule_squash_options,work_item_status,glab_ask_git_command,generate_commit_message,summarize_new_merge_request,summarize_review,generate_description,summarize_comments,review_merge_request,board_status_lists,disable_invite_members,self_hosted_models,native_secrets_management,built_in_project_templates_enabled,group_ip_restriction,issues_analytics,password_complexity,group_wikis,email_additional_text,custom_file_templates_for_namespace,incident_sla,export_user_permissions,cross_project_pipelines,feature_flags_related_issues,merge_pipelines,ci_cd_projects,github_integration,ai_config_chat,ai_features,amazon_q,api_discovery,api_fuzzing,auto_rollback,cluster_receptive_agents,cluster_image_scanning,external_status_checks,ci_runner_controllers,compliance_pipeline_configuration,container_registry_immutable_tag_rules,container_scanning,credentials_inventory,custom_roles,dast,dependency_scanning,dora4_analytics,description_composer,enterprise_templates,environment_alerts,evaluate_group_level_compliance_pipeline,explain_code,external_audit_events,experimental_features,generate_test_file,git_abuse_rate_limit,group_ci_cd_analytics_releases,group_level_compliance_adherence_report,group_level_compliance_violations_report,project_level_compliance_dashboard,project_level_compliance_adherence_report,project_level_compliance_violations_report,incident_management,inline_codequality,insights,integrations_allow_list,issuable_health_status,issues_completed_analytics,jira_vulnerabilities_integration,jira_issue_association_enforcement,kubernetes_cluster_vulnerabilities,license_scanning,okrs,personal_access_token_expiration_policy,secret_push_protection,product_analytics,project_quality_summary,quality_management,release_evidence_test_artifacts,report_approver_rules,required_ci_templates,requirements,runner_maintenance_note,runner_maintenance_note_for_namespace,runner_performance_insights,runner_performance_insights_for_namespace,runner_upgrade_management,runner_upgrade_management_for_namespace,sarif,sast,sast_advanced,sast_iac,sast_custom_rulesets,sast_fp_reduction,secret_detection,security_attributes,security_configuration_in_ui,security_dashboard,security_inventory,security_on_demand_scans,security_orchestration_policies,security_scan_profiles,security_training,ssh_key_expiration_policy,summarize_mr_changes,stale_runner_cleanup_for_namespace,status_page,suggested_reviewers,subepics,observability,unique_project_download_limit,vulnerability_finding_signatures,container_scanning_for_registry,secret_detection_validity_checks,security_exclusions,security_scans_api,observability_alerts,measure_comment_temperature,license_information_source,coverage_fuzzing,devops_adoption,group_level_devops_adoption,instance_level_devops_adoption'
+GITLAB_USER_EMAIL='[MASKED]'
+GITLAB_USER_ID='[MASKED]'
+GITLAB_USER_LOGIN='[MASKED]'
+GITLAB_USER_NAME='[MASKED]'
+GIT_DEPTH='0'
+GS_UPSTREAM_TOKEN='[MASKED]'
+HOME='/root'
+HOSTNAME='runner-jlguopmmv-project-84970463-concurrent-0'
+MR_SOURCE_BRANCH='main'
+MR_TARGET_BRANCH='main'
+OLDPWD='/'
+PATH='/builds/ub-dems/vs-base/dve-sample-py/.venv/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+PWD='/builds/ub-dems/vs-base/dve-sample-py'
+PYTHON_SHA256='143b1dddefaec3bd2e21e3b839b34a2b7fb9842272883c576420d605e9f30c63'
+PYTHON_VERSION='3.14.6'
+RUNNER_TEMP_PROJECT_DIR='/builds/ub-dems/vs-base/dve-sample-py.tmp'
+SHLVL='1
+See merge request ub-dems/vs-base/dve-sample-py!2
+See merge request ub-dems/vs-base/dve-sample-py!2'
+UPSTREAM_PROJECT_PATH='ub-dems/ds-labs/dve-sample-py'
+UPSTREAM_PROJECT_PATH_ENCODED='ub-dems%2Fds-labs%2Fdve-sample-py'
+UV='/root/.local/bin/uv'
+UV_CACHE_DIR='/builds/ub-dems/vs-base/dve-sample-py/.cache/uv'
+UV_ENV_FILE='.env'
+UV_INDEX_TORCH_GPU='https://download.pytorch.org/whl/cpu'
+UV_NO_PROGRESS='1'
+UV_PYTHON_PREFERENCE='only-managed'
+UV_RUN_RECURSION_DEPTH='1'
+UV_VERSION='latest'
+VIRTUAL_ENV='/builds/ub-dems/vs-base/dve-sample-py/.venv'
+
+```
+
+## GitLab API Examples
+
+Remote MR creation and trigger
+
+``` bash
+
+##
+# SECRETS
+#
+
+GS_UPSTREAM_TOKEN="[MASKED]"
+
+##
+# CI Dynamic
+#
+
+CI_COMMIT_TAG='3.2607.1'
+CI_COMMIT_SHA='343d0e27e88cb8df472b27316d7845b009c40410'
+
+##
+# CI Context
+#
+
+CI_API_V4_URL='https://gitlab.com/api/v4'
+
+CI_PROJECT_ID='84970463'
+CI_PROJECT_PATH='ub-dems/vs-base/dve-sample-py'
+
+
+##
+# VARIABLES
+#
+
+DOWNSTREAM_PROJECT_PATH="ub-dems/vs-base/dve-sample-py"
+UPSTREAM_PROJECT_PATH="ub-dems/ds-labs/dve-sample-py"
+UPSTREAM_PROJECT_PATH_ENCODED="ub-dems%2Fds-labs%2Fdve-sample-py"
+MR_SOURCE_BRANCH="main"
+MR_TARGET_BRANCH="main"
+
+
+
+##
+#
+#
+
+UPSTREAM_PROJECT_ID=$(curl --silent --show-error --fail \
+  --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+  "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_PATH_ENCODED}" | jq -r .id)
+
+echo "UPSTREAM_PROJECT_ID=$UPSTREAM_PROJECT_ID"
+
+
+##
+#
+#
+
+RESPONSE=$(curl --silent --show-error --fail \
+  --request POST \
+  --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+  --data-urlencode "source_branch=${MR_SOURCE_BRANCH}" \
+  --data-urlencode "target_branch=${MR_TARGET_BRANCH}" \
+  --data-urlencode "target_project_id=${UPSTREAM_PROJECT_ID}" \
+  --data-urlencode "title=Release ${CI_COMMIT_TAG}: sync downstream to upstream main" \
+  --data-urlencode "description=Automated release MR for tag ${CI_COMMIT_TAG}. Source: ${CI_PROJECT_PATH}@${CI_COMMIT_SHA}." \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests")
+
+MR_IID=$(echo "${RESPONSE}" | jq -r '.iid // empty')
+if [ -z "${MR_IID}" ]; then
+  echo "Failed to create merge request:"
+  echo "${RESPONSE}" | jq .
+  exit 1
+fi
+
+echo "Created MR !${MR_IID} on upstream project ${UPSTREAM_PROJECT_ID}"
+echo "MR_IID=${MR_IID}" >> mr.env
+echo "UPSTREAM_PROJECT_ID=${UPSTREAM_PROJECT_ID}" >> mr.env
+
+
+
+##
+#
+#
+
+ echo "Waiting for the upstream validation pipeline on MR !${MR_IID} ..."
+ PIPELINE_STATUS="none"
+ for i in $(seq 1 60); do
+   MR_JSON=$(curl --silent --show-error --fail \
+                  --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+                  "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}")
+  PIPELINE_STATUS=$(echo "${MR_JSON}" | jq -r '.head_pipeline.status // "none"')
+  echo "  upstream pipeline status: ${PIPELINE_STATUS}"
+  [ "${PIPELINE_STATUS}" = "success" ] && break
+  if [ "${PIPELINE_STATUS}" = "failed" ] || [ "${PIPELINE_STATUS}" = "canceled" ]; then
+    echo "Upstream validation pipeline did not succeed. Aborting."
+    exit 1
+  fi
+  sleep 30
+done
+if [ "${PIPELINE_STATUS}" != "success" ]; then
+  echo "Timed out waiting for the upstream validation pipeline."
+  exit 1
+fi
+
+
+##
+#
+#
+
+curl --silent --show-error --fail \
+  --request PUT \
+  --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+  --data-urlencode "should_remove_source_branch=false" \
+  --data-urlencode "merge_commit_message=Release ${CI_COMMIT_TAG}" \
+  "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}/merge"
+
+##
+#
+#
+
+echo "Waiting for the merge to complete ..."
+MR_STATE="unknown"
+for i in $(seq 1 20); do
+  MR_JSON=$(curl --silent --show-error --fail \
+                 --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+ "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}")
+  MR_STATE=$(echo "${MR_JSON}" | jq -r .state)
+  if [ "${MR_STATE}" = "merged" ]; then
+    MERGE_COMMIT_SHA=$(echo "${MR_JSON}" | jq -r .merge_commit_sha)
+    break
+  fi
+  sleep 15
+done
+if [ "${MR_STATE}" != "merged" ]; then
+  echo "Merge request was not merged in time."
+  exit 1
+fi
+
+##
+#
+#
+
+echo "Tagging upstream main at ${MERGE_COMMIT_SHA} as ${CI_COMMIT_TAG}"
+curl --silent --show-error --fail \
+  --request POST \
+  --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+  --data-urlencode "tag_name=${CI_COMMIT_TAG}" \
+  --data-urlencode "ref=${MERGE_COMMIT_SHA}" \
+  --data-urlencode "message=Release ${CI_COMMIT_TAG}" \
+  "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/repository/tags"
+
+
+```
+
 
 <!-- }}} \\ %a. -->
 <!-- {{{ // %*
