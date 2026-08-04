@@ -72,6 +72,7 @@ stages:
   - lint
   - test
   - build
+  - merge
   - release
   - publish
 
@@ -282,6 +283,18 @@ workflow:
       when: never
     - when: on_success  
 
+.ctx-merge-upstream:
+  environment:
+    name: staging
+  rules:
+    - if: '$CI_PROJECT_PATH != "$[[ inputs.gd-upstream-project ]]"'
+      when: never
+    - if: >-
+       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_COMMIT_BRANCH &&
+       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      when: never
+    - when: on_success  
+
 .ctx-release-upstream:
   extends:
     - .ctx-release-tag
@@ -293,13 +306,13 @@ workflow:
       when: never
     - when: on_success  
 
-.ctx-release-upstream-py:
+.ctx-merge-upstream-py:
   extends:
-    - .ctx-release-upstream
+    - .ctx-merge-upstream
   rules:
     - if: '"$[[ inputs.gd-lang-op-python ]]" != "1"'
       when: never
-    - !reference [.ctx-release-upstream, rules]
+    - !reference [.ctx-merge-upstream, rules]
     
 .ctx-release-image:
   extends:
@@ -576,37 +589,37 @@ building-py:
 # Stage: release #validation (upstream only)
 # -----------------------------------------------------------------------------
 
-release-checks-py:
-  stage: release
+merge-checks-py:
+  stage: merge
   extends:
-    - .ctx-release-upstream-py
+    - .ctx-merge-upstream-py
     - .uv-validate-check
   script:
     - uv run ruff check
     - uv run ruff format --check
     - uv run pyright
 
-release-licence:
-  stage: release
+merge-licence:
+  stage: merge
   extends:
-    - .ctx-release-upstream
+    - .ctx-merge-upstream
     - .uv-validate-check
   script:
     - uv run reuse lint
 
-release-tests-py:
-  stage: release
+merge-tests-py:
+  stage: merge
   extends:
-    - .ctx-release-upstream-py
+    - .ctx-merge-upstream-py
     - .uv-validate-test
   script:
     - uv run pytest -v
     # - uv run pytest -v --cov
 
-release-build-py:
-  stage: release
+merge-build-py:
+  stage: merge
   extends:
-    - .ctx-release-upstream-py
+    - .ctx-merge-upstream-py
     - .uv-validate-build
   script:
     - uv build
@@ -624,7 +637,7 @@ create-merge-request:
   extends:
     - .ctx-release-downstream
     - .gitlab-api-base
-  stage: release
+  stage: merge
   # dependencies:
   #   - release-checks-py
   #   - release-tests-py
@@ -673,7 +686,7 @@ trigger-upstream-merge-and-tag:
   extends:
     - .ctx-release-downstream
     - .gitlab-api-base
-  stage: release
+  stage: merge
   needs:
     - job: create-merge-request
       artifacts: true
