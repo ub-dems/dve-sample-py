@@ -102,6 +102,7 @@ variables:
   # and are intentionally NOT redeclared here:
   #
   # = GitLab API ==============================
+  # - GS_DOWNSTREAM_TOKEN
   # - GS_UPSTREAM_TOKEN
   #
   # = Podman Public Registry ==============================
