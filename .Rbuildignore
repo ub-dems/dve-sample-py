@@ -2,6 +2,9 @@
 ^auto-save-list$
 ^azure-pipelines\.yml$
 ^bench$
+^.cache/uv$
+^.cache$
+^.pytest_cache$
 ^.clangd$
 ^codecov\.yml$
 ^compile_commands.json$

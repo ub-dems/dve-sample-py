@@ -126,7 +126,10 @@ venv
 *.egg-info
 
 # ---( cache )-----
+/.cache/uv/
+/.cache/
 /.pytest_cache/
+
 
 # ---( tools )-----
 

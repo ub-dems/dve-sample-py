@@ -6,7 +6,7 @@
 # ---
 #+OPTIONS: toc:nil h:4
 #+STARTUP: show2levels
-#+LINK: dve-sample-r https://gitlab.com/ub-dems-public/ds-labs/dve-sample-r
+#+LINK: dve-sample-r https://gitlab.com/ub-dems/ds-labs/dve-sample-r
 
 #+PROPERTY: header-args:bash :dir /ssh:dsuser@pp2:/home/dsuser/work/tm/us-proto-r
 #+PROPERTY: header-args:bash+ :export code  :tangle  ../../etc/custom/custom.sh :shebang "#!/bin/bash" :comments both

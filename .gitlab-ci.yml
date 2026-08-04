@@ -23,6 +23,10 @@ spec:
       default: '0'
     gd-release-op-upstream-notify:
       default: '0'
+    gd-develop-op-downstream-check-on-commit:
+      default: '0'
+    gd-develop-op-downstream-check-on-merge:
+      default: '1'
     gd-downstream-project:
       default: "ub-dems/vs-base/dve-sample-py"
     gd-upstream-project:
@@ -56,7 +60,7 @@ spec:
     gd-lang-op-python:
       default: '1'
     gd-debug-pipeline:
-      default: '0'
+      default: '1'
     environment:
       options:
         - development
@@ -254,6 +258,14 @@ workflow:
        "$[[ inputs.gd-downstream-project-head ]]" !=  $CI_COMMIT_BRANCH &&
        "$[[ inputs.gd-downstream-project-head ]]" !=  $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
       when: never
+    - if: >-
+       "$[[ inputs.gd-develop-op-downstream-check-on-commit ]]" !=  "1" &&
+       $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - if: >-
+       "$[[ inputs.gd-develop-op-downstream-check-on-merge ]]" !=  "1" &&
+       $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - when: on_success  
 
 .ctx-develop-py:
@@ -273,7 +285,7 @@ workflow:
     - if: '$CI_COMMIT_TAG !~ /$[[ inputs.gd-version-schema ]]/'
       when: never
 
-.ctx-release-downstream:
+.ctx-merge-downstream:
   extends:
     - .ctx-release-tag
   environment:
@@ -292,7 +304,7 @@ workflow:
       when: never
     - if: >-
        "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_COMMIT_BRANCH &&
-       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       when: never
     - when: on_success  
 
@@ -469,10 +481,10 @@ config-ext-staging:
   stage: .pre
   extends:
     - .config-ext
-    - .ctx-release-downstream
+    - .ctx-merge-downstream
   rules:
     - !reference [.config-ext, rules]
-    - !reference [.ctx-release-downstream, rules]
+    - !reference [.ctx-merge-downstream, rules]
 
 config-ext-production:
   stage: .pre
@@ -535,7 +547,7 @@ formatting-py:
   script:
     - uv run ruff format --check
 
-licensing:
+licensing-all:
   stage: lint
   extends:
     - .ctx-develop
@@ -575,7 +587,7 @@ building-py:
     - .uv-validate-build
   script:
     - uv build
-    - ls -l dist
+    - ls -lh dist
     - du -sh  dist
 
 
@@ -583,11 +595,14 @@ building-py:
 # Pipeline: RELEASE: downstream main + upstream main
 # -------------------------------------------------------------------------------
 # - after downstram main annotated version tag commit
-# - forward downstram main -> upstream main MR
+# - forward downstram main -> upstream main create MR, from downstream
+# - after upstream validation -> upstream main MR merge, from downstream
+# - after upstream merge -> upstream release tag, from downstream
+# - after upstream tag -> upstream release publish, from upstream
 # ===============================================================================
 
 # -----------------------------------------------------------------------------
-# Stage: release #validation (upstream only)
+# Stage: merge #validation (upstream only)
 # -----------------------------------------------------------------------------
 
 merge-checks-py:
@@ -626,23 +641,24 @@ merge-build-py:
     - uv build
     - ls -l dist
     - du -s dist
+  artifacts:
+    paths:
+      - "dist"
+
+
 
 # -----------------------------------------------------------------------------
-# Stage: release #merge-request (downstream only) - upstream MR create
+# Stage: merge #merge-request (downstream only) - upstream MR create
 # -----------------------------------------------------------------------------
 
 # Project scope    : downstream only
 # Trigger condition: tag *.*.* (workflow:rules) AND downstream project path
-# Required vars    : GS_UPSTREAM_TOKEN
+# Required vars    : GS_UPSTREAM_TOKEN, GS_DOWNSTREAM_TOKEN
 create-merge-request:
   extends:
-    - .ctx-release-downstream
+    - .ctx-merge-downstream
     - .gitlab-api-base
   stage: merge
-  # dependencies:
-  #   - release-checks-py
-  #   - release-tests-py
-  #   - release-build-py
   script:
     - |
       UPSTREAM_PROJECT_ID=$(curl --silent --show-error --fail \
@@ -676,16 +692,16 @@ create-merge-request:
       dotenv: mr.env
 
 # -----------------------------------------------------------------------------
-# Stage: release #merge-request (downstream only) - upstream MR merge + tag
+# Stage: merge #merge-request (downstream only) - upstream MR merge
 # -----------------------------------------------------------------------------
 
 # Project scope    : downstream only (ub-dems/dve-simple-py)
 # Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
 #                    MANUAL (see "Stage 3 approval gate" above)
 # Required vars    : GS_UPSTREAM_TOKEN
-trigger-upstream-merge-and-tag:
+trigger-upstream-merge:
   extends:
-    - .ctx-release-downstream
+    - .ctx-merge-downstream
     - .gitlab-api-base
   stage: merge
   needs:
@@ -739,7 +755,32 @@ trigger-upstream-merge-and-tag:
         echo "Merge request was not merged in time."
         exit 1
       fi
+      echo "On upstream, MR !${MR_IID}: MERGED ..."
 
+
+# -----------------------------------------------------------------------------
+# Stage: release #merge-request (downstream only) - upstream MR merge + tag
+# -----------------------------------------------------------------------------
+
+# Project scope    : downstream only (ub-dems/dve-simple-py)
+# Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
+#                    MANUAL (see "Stage 3 approval gate" above)
+# Required vars    : GS_UPSTREAM_TOKEN
+trigger-upstream-tag:
+  extends:
+    - .ctx-merge-downstream
+    - .gitlab-api-base
+  stage: release
+  needs:
+    - job: create-merge-request
+      artifacts: true
+    - job: trigger-upstream-merge
+      artifacts: true
+  dependencies:
+    - create-merge-request
+    - trigger-upstream-merge
+  script:
+    - |
       echo "Tagging upstream main at ${MERGE_COMMIT_SHA} as ${CI_COMMIT_TAG}"
       curl --silent --show-error --fail \
         --request POST \

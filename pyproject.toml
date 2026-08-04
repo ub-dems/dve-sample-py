@@ -355,7 +355,8 @@ include = [
 
 exclude = [
   "*.json",
-  "pkg/_compat.py",
+  ".cache",
+  ".cache/uv",
 ]
 
 [tool.hatch.build.targets.wheel]

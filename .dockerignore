@@ -1,3 +1,6 @@
+.cache/uv/
+.cache/
+.pytest_cache/
 docker/
 .dockerignore
 etc/custom/
