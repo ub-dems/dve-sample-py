@@ -117,6 +117,7 @@ venv
 **/build/
 /build/
 /dist/
+/images/
 
 *.pyc
 *.egg

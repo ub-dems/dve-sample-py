@@ -20,6 +20,7 @@
 ^doc$
 ^docker$
 ^\.dockerignore.*$
+^dist$
 ^docs$
 ^\.editorconfig$
 ^env-args.txt$
@@ -31,6 +32,7 @@
 ^\.gitlab$
 ^home$
 ^\.httr-oauth$
+^images$
 ^inst/bench$
 ^inst/db$
 ^inst/extdata/ext$

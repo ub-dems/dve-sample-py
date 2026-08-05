@@ -60,7 +60,7 @@ spec:
     gd-lang-op-python:
       default: '1'
     gd-debug-pipeline:
-      default: '1'
+      default: '0'
     environment:
       options:
         - development
@@ -77,6 +77,8 @@ stages:
   - test
   - build
   - merge
+  - check
+  - package
   - release
   - publish
 
@@ -296,18 +298,6 @@ workflow:
       when: never
     - when: on_success  
 
-.ctx-merge-upstream:
-  environment:
-    name: staging
-  rules:
-    - if: '$CI_PROJECT_PATH != "$[[ inputs.gd-upstream-project ]]"'
-      when: never
-    - if: >-
-       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_COMMIT_BRANCH &&
-       "$[[ inputs.gd-upstream-project-main ]]" !=  $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-      when: never
-    - when: on_success  
-
 .ctx-release-upstream:
   extends:
     - .ctx-release-tag
@@ -319,13 +309,15 @@ workflow:
       when: never
     - when: on_success  
 
-.ctx-merge-upstream-py:
+.ctx-release-upstream-py:
   extends:
-    - .ctx-merge-upstream
+    - .ctx-release-upstream
+  environment:
+    name: production
   rules:
     - if: '"$[[ inputs.gd-lang-op-python ]]" != "1"'
       when: never
-    - !reference [.ctx-merge-upstream, rules]
+    - !reference [.ctx-release-upstream, rules]
     
 .ctx-release-image:
   extends:
@@ -359,6 +351,9 @@ workflow:
 
 .podman-base:
   image: quay.io/podman/stable:v5
+  before_script:
+    - df -h
+    - podman info
 
 .uv-validate-base:
   image: python:$[[ inputs.gd-python-version ]]-slim
@@ -592,68 +587,25 @@ building-py:
 
 
 # ===============================================================================
-# Pipeline: RELEASE: downstream main + upstream main
+# Pipeline: RELEASE - stages: merge (D), check (U), package (U), release (U)
 # -------------------------------------------------------------------------------
-# - after downstram main annotated version tag commit
-# - forward downstram main -> upstream main create MR, from downstream
-# - after upstream validation -> upstream main MR merge, from downstream
+# - after downstram main annotated version tag commit: `gd-version-schema`
+# - forward downstream main -> upstream main create MR, from downstream
+# - no upstream pipeline [^1] -> upstream main MR merge, from downstream
 # - after upstream merge -> upstream release tag, from downstream
 # - after upstream tag -> upstream release publish, from upstream
+#
+# [^1]: see: https://claude.ai/share/fb5c11c1-a3bb-4dc3-bd38-1d82c178d969
 # ===============================================================================
-
-# -----------------------------------------------------------------------------
-# Stage: merge #validation (upstream only)
-# -----------------------------------------------------------------------------
-
-merge-checks-py:
-  stage: merge
-  extends:
-    - .ctx-merge-upstream-py
-    - .uv-validate-check
-  script:
-    - uv run ruff check
-    - uv run ruff format --check
-    - uv run pyright
-
-merge-licence:
-  stage: merge
-  extends:
-    - .ctx-merge-upstream
-    - .uv-validate-check
-  script:
-    - uv run reuse lint
-
-merge-tests-py:
-  stage: merge
-  extends:
-    - .ctx-merge-upstream-py
-    - .uv-validate-test
-  script:
-    - uv run pytest -v
-    # - uv run pytest -v --cov
-
-merge-build-py:
-  stage: merge
-  extends:
-    - .ctx-merge-upstream-py
-    - .uv-validate-build
-  script:
-    - uv build
-    - ls -l dist
-    - du -s dist
-  artifacts:
-    paths:
-      - "dist"
-
 
 
 # -----------------------------------------------------------------------------
 # Stage: merge #merge-request (downstream only) - upstream MR create
 # -----------------------------------------------------------------------------
-
 # Project scope    : downstream only
 # Trigger condition: tag *.*.* (workflow:rules) AND downstream project path
 # Required vars    : GS_UPSTREAM_TOKEN, GS_DOWNSTREAM_TOKEN
+
 create-merge-request:
   extends:
     - .ctx-merge-downstream
@@ -694,11 +646,14 @@ create-merge-request:
 # -----------------------------------------------------------------------------
 # Stage: merge #merge-request (downstream only) - upstream MR merge
 # -----------------------------------------------------------------------------
-
 # Project scope    : downstream only (ub-dems/dve-simple-py)
 # Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
 #                    MANUAL (see "Stage 3 approval gate" above)
 # Required vars    : GS_UPSTREAM_TOKEN
+#
+# see: "Require a commit SHA on the merge requests API"
+# - https://docs.gitlab.com/user/group/manage/#require-a-commit-sha-on-the-merge-requests-api
+
 trigger-upstream-merge:
   extends:
     - .ctx-merge-downstream
@@ -730,7 +685,12 @@ trigger-upstream-merge:
         echo "Timed out waiting for the upstream validation pipeline."
         exit 1
       fi
+      echo "Success on upstream validation pipeline on MR !${MR_IID}."
 
+      # https://docs.gitlab.com/user/group/manage/#require-a-commit-sha-on-the-merge-requests-api
+
+      echo "On upstream, merge request  on MR !${MR_IID} ..."
+      
       curl --silent --show-error --fail \
         --request PUT \
         --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
@@ -759,18 +719,18 @@ trigger-upstream-merge:
 
 
 # -----------------------------------------------------------------------------
-# Stage: release #merge-request (downstream only) - upstream MR merge + tag
+# Stage: merge #merge-request (downstream only) - upstream tag
 # -----------------------------------------------------------------------------
-
 # Project scope    : downstream only (ub-dems/dve-simple-py)
 # Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
 #                    MANUAL (see "Stage 3 approval gate" above)
 # Required vars    : GS_UPSTREAM_TOKEN
+
 trigger-upstream-tag:
   extends:
     - .ctx-merge-downstream
     - .gitlab-api-base
-  stage: release
+  stage: merge
   needs:
     - job: create-merge-request
       artifacts: true
@@ -790,17 +750,88 @@ trigger-upstream-tag:
         --data-urlencode "message=Release ${CI_COMMIT_TAG}" \
         "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/repository/tags"
 
+
 # -----------------------------------------------------------------------------
-# Stage: release #publish (unstream only) - podman build + save
+# Stage: check #validation (upstream only)
 # -----------------------------------------------------------------------------
 
+release-checks-py:
+  stage: check
+  extends:
+    - .ctx-release-upstream-py
+    - .uv-validate-check
+  script:
+    - uv run ruff check
+    - uv run ruff format --check
+    - uv run pyright
+
+release-licence-all:
+  stage: check
+  extends:
+    - .ctx-release-upstream
+    - .uv-validate-check
+  script:
+    - uv run reuse lint
+
+release-tests-py:
+  stage: check
+  extends:
+    - .ctx-release-upstream-py
+    - .uv-validate-test
+  script:
+    - uv run pytest -v
+    # - uv run pytest -v --cov
+
+
+# -----------------------------------------------------------------------------
+# Stage: package (unstream only) - uv build + save
+# -----------------------------------------------------------------------------
+
+release-build-py:
+  stage: package
+  extends:
+    - .ctx-release-upstream
+    - .uv-validate-build
+  script:
+    - uv build
+    - ls -l dist
+    - du -s dist
+  artifacts:
+    paths:
+      - "dist"
+
+# -----------------------------------------------------------------------------
+# Stage: release (unstream only) - create gitlab release
+# -----------------------------------------------------------------------------
+
+release-collect:
+  stage: release
+  extends:
+    - .ctx-release-upstream
+    - .uv-validate-build
+  needs:
+    - job: release-build-py
+      artifacts: true
+  dependencies:
+    - release-build-py
+  script:
+    - echo "#RELEASE($CI_COMMIT_TAG)"
+    - ls -l dist
+    - du -s dist
+
+
+
+# -----------------------------------------------------------------------------
+# Stage: package #images (upstream only) - podman build + save
+# -----------------------------------------------------------------------------
 # Project scope    : upstream only
 # Trigger condition: tag *.*.* (workflow:rules) AND upstream project path;
 #                    this run starts because the tag above was created on the
 #                    upstream project via the API in the previous stage
 # Required vars    : none
+
 build-base-images:
-  stage: release
+  stage: package
   extends:
     - .ctx-release-image
     - .podman-base
@@ -811,6 +842,11 @@ build-base-images:
       # Placeholder identifiers — replace with the real image names produced
       # by scripts/build-images.sh (see "Additional notes" below).
       - IMAGE_NAME: ["anchor", "cuda", "base", "runtime"]
+  before_script:
+    - !reference [.podman-base, before_script]
+    - build.sh setup"
+    - podman images
+    - df -h
   script:
     - build.sh image "${IMAGE_NAME}"
     - mkdir -p images
@@ -820,16 +856,16 @@ build-base-images:
       - "images/${IMAGE_NAME}.tar"
     expire_in: "1 day"
 
+
 # -----------------------------------------------------------------------------
 # Stage: image-push (upstream only)
 # -----------------------------------------------------------------------------
-
 # Project scope    : upstream only (ub-dems-public/dve-simple-py)
 # Trigger condition: tag v*.*.* (workflow:rules) AND upstream project path;
 #                    runs only if every build-image matrix job succeeded
 # Required vars    : REGISTRY_URL, REGISTRY_USER, REGISTRY_PASSWORD
 push-base-images:
-  stage: release
+  stage: publish
   extends:
     - .ctx-release-image
     - .podman-base

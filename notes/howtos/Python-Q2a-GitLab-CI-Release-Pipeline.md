@@ -2211,6 +2211,7 @@ Remote MR creation and trigger
 # SECRETS
 #
 
+GS_DOWNSTREAM_TOKEN="[MASKED]"
 GS_UPSTREAM_TOKEN="[MASKED]"
 
 ##

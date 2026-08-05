@@ -354,9 +354,12 @@ include = [
 ]
 
 exclude = [
-  "*.json",
+  "*.tar",
+  "*.tar.gz",
   ".cache",
   ".cache/uv",
+  "images",
+  "node_modules",
 ]
 
 [tool.hatch.build.targets.wheel]

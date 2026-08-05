@@ -10,6 +10,7 @@ etc/custom/
 .gitlab/
 home/
 inst/extdata/ext/
+images/
 logs/
 notes/
 temp/
