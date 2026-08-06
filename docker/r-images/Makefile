@@ -71,7 +71,11 @@ IMG_WORKER ?= $(shell (grep 'org.opencontainers.image.title' ${DKF_WORKER} | cut
 
 # ---(registry)------------------------------------------------
 
-REGISTRY_HOST := svsi680reg.azurecr.io
+ACR_REGISTRY ?= svsi680reg.azurecr.io
+ACR_BASEPATH ?= ubdems
+
+REGISTRY_HOST := ${ACR_REGISTRY}
+REGISTRY_PATH := ${ACR_BASEPATH}
 
 # ---(tag)------------------------------------------------
 
@@ -84,7 +88,7 @@ IMAGE_REVISION ?= $(COMMIT_HASH)
 GIT_COMMIT     := $(shell git rev-parse HEAD)
 GIT_TREE_STATE := $(shell test -n "`git status --porcelain`" && echo "-dirty" || echo "")
 
-REGISTRY ?= $(REGISTRY_HOST)/ubdems
+REGISTRY ?= $(REGISTRY_HOST)/$(REGISTRY_PATH)
 TAG      ?= sha-$(GIT_COMMIT)$(GIT_TREE_STATE)
 TAG      ?= "latest"
 

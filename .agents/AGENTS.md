@@ -20,6 +20,10 @@
 > **Rule:** Never run `pytest`, `python`, `pyright`, `ruff`, or `yarn` directly.
 > Always prefix with `uv run …` (see Commands below).
 
+### Environment
+
+Always detect for `.env` file in project root. If present, add option `--env-file` to `uv run` commands, in this way: `uv run --env-file=.env ...`
+
 ---
 
 ## Commands

@@ -59,6 +59,8 @@ spec:
       default: "../conf"
     gd-lang-op-python:
       default: '1'
+    gd-trace-pipeline:
+      default: '1'
     gd-debug-pipeline:
       default: '0'
     environment:
@@ -71,13 +73,24 @@ spec:
 ---
 
 stages:
+
+  # .pre
   - config
   - debug
+  
+  # downstream
   - lint
   - test
   - build
+
+  # downstream (tag)
   - merge
+  
+  # upstream - (tag) trigger
   - check
+  - commit
+  
+  # upstream (tag)
   - package
   - release
   - publish
@@ -150,6 +163,11 @@ variables:
   MR_TARGET_BRANCH: "$[[ inputs.gd-upstream-project-main ]]"
   GIT_DEPTH: "0"
 
+  GD_TRACE: "$[[ inputs.gd-trace-pipeline ]]"
+  GD_DEBUG: "$[[ inputs.gd-debug-pipeline ]]"
+
+
+
   # ---------------------------------------------------------------------------
   # Disk-budget notes
   # ---------------------------------------------------------------------------
@@ -216,14 +234,15 @@ workflow:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /^WIP.*/
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
     - if: $CI_COMMIT_REF_PROTECTED != "true"
       when: never
     - if: $CI_COMMIT_TAG
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
+    # - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+    #   when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_REF_PROTECTED == "true"
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
 
 # ---------------------------------------------------------------------------
@@ -298,6 +317,25 @@ workflow:
       when: never
     - when: on_success  
 
+.ctx-merge-upstream:
+  interruptible: false
+  environment:
+    name: staging
+  rules:
+    - if: '$CI_PROJECT_PATH != "$[[ inputs.gd-upstream-project ]]"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: >-
+       $CI_PIPELINE_SOURCE != "pipeline" &&
+       $MERGE_SYNC_TRIGGER != "1"
+      when: never
+    - when: on_success
+
+.ctx-upstream-triggered:
+  rules:
+    - if: '$CI_PROJECT_PATH == "$[[ inputs.gd-upstream-project ]]" && $CI_PIPELINE_SOURCE == "pipeline"'
+    
+
 .ctx-release-upstream:
   extends:
     - .ctx-release-tag
@@ -309,13 +347,23 @@ workflow:
       when: never
     - when: on_success  
 
+.ctx-merge-upstream-py:
+  extends:
+    - .ctx-merge-upstream
+  rules:
+    - if: '"$[[ inputs.gd-lang-op-python ]]" == "-1"'
+      when: never
+    - !reference [.ctx-merge-upstream, rules]
+    
+
+
 .ctx-release-upstream-py:
   extends:
     - .ctx-release-upstream
   environment:
     name: production
   rules:
-    - if: '"$[[ inputs.gd-lang-op-python ]]" != "1"'
+    - if: '"$[[ inputs.gd-lang-op-python ]]" == "-1"'
       when: never
     - !reference [.ctx-release-upstream, rules]
     
@@ -590,12 +638,15 @@ building-py:
 # Pipeline: RELEASE - stages: merge (D), check (U), package (U), release (U)
 # -------------------------------------------------------------------------------
 # - after downstram main annotated version tag commit: `gd-version-schema`
-# - forward downstream main -> upstream main create MR, from downstream
-# - no upstream pipeline [^1] -> upstream main MR merge, from downstream
+# - forward downstream main [^1] -> upstream main create MR, from downstream
+# - no upstream pipeline [^2] -> upstream main MR merge, from downstream
 # - after upstream merge -> upstream release tag, from downstream
 # - after upstream tag -> upstream release publish, from upstream
 #
-# [^1]: see: https://claude.ai/share/fb5c11c1-a3bb-4dc3-bd38-1d82c178d969
+# [^1]: see: "Require a commit SHA on the merge requests API"
+#  - https://docs.gitlab.com/user/group/manage/#require-a-commit-sha-on-the-merge-requests-api
+#
+# [^2]: see: https://claude.ai/share/fb5c11c1-a3bb-4dc3-bd38-1d82c178d969
 # ===============================================================================
 
 
@@ -644,150 +695,162 @@ create-merge-request:
       dotenv: mr.env
 
 # -----------------------------------------------------------------------------
-# Stage: merge #merge-request (downstream only) - upstream MR merge
+# Stage: merge #merge-request (downstream only) - trigger upstream merge
 # -----------------------------------------------------------------------------
 # Project scope    : downstream only (ub-dems/dve-simple-py)
-# Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
-#                    MANUAL (see "Stage 3 approval gate" above)
+# Trigger condition: tag *.*.* (workflow:rules) AND downstream project path;
 # Required vars    : GS_UPSTREAM_TOKEN
+# Required auth    : CI_JOB_TOKEN
 #
-# see: "Require a commit SHA on the merge requests API"
-# - https://docs.gitlab.com/user/group/manage/#require-a-commit-sha-on-the-merge-requests-api
+# [^1]: see: "CI/CD Settings - Job token permissions"
 
-trigger-upstream-merge:
+trigger-upstream-sync:
   extends:
     - .ctx-merge-downstream
-    - .gitlab-api-base
   stage: merge
   needs:
     - job: create-merge-request
       artifacts: true
+  trigger:
+    project: "$[[ inputs.gd-upstream-project ]]"
+    branch: "$[[ inputs.gd-upstream-project-main ]]"
+    strategy: depend
+  variables:
+    MERGE_SYNC_TRIGGER: "1"
+    MR_IID: $MR_IID
+    RELEASE_TAG: $CI_COMMIT_TAG
+    SOURCE_PROJECT_ID: $CI_PROJECT_ID    
+
+# -----------------------------------------------------------------------------
+# Stage: merge #merge-request (upstream only) - trigger: MERGE_SYNC_TRIGGER
+# -----------------------------------------------------------------------------
+# Project scope    : upstream only
+# Trigger condition: MERGE_SYNC_TRIGGER AND upstream project path;
+# Required vars    : GS_UPSTREAM_TOKEN
+
+upstream-merge-and-tag:
+  stage: commit
+  extends:
+    - .ctx-merge-upstream
+    - .gitlab-api-base
   dependencies:
-    - create-merge-request
+    - check-gate
   script:
     - |
-      echo "Waiting for the upstream validation pipeline on MR !${MR_IID} ..."
-      PIPELINE_STATUS="none"
-      for i in $(seq 1 60); do
-        MR_JSON=$(curl --silent --show-error --fail \
-          --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}")
-        PIPELINE_STATUS=$(echo "${MR_JSON}" | jq -r '.head_pipeline.status // "none"')
-        echo "  upstream pipeline status: ${PIPELINE_STATUS}"
-        [ "${PIPELINE_STATUS}" = "success" ] && break
-        if [ "${PIPELINE_STATUS}" = "failed" ] || [ "${PIPELINE_STATUS}" = "canceled" ]; then
-          echo "Upstream validation pipeline did not succeed. Aborting."
-          exit 1
-        fi
-        sleep 30
-      done
-      if [ "${PIPELINE_STATUS}" != "success" ]; then
-        echo "Timed out waiting for the upstream validation pipeline."
-        exit 1
-      fi
-      echo "Success on upstream validation pipeline on MR !${MR_IID}."
-
-      # https://docs.gitlab.com/user/group/manage/#require-a-commit-sha-on-the-merge-requests-api
-
-      echo "On upstream, merge request  on MR !${MR_IID} ..."
-      
+      echo "Merging MR !${MR_IID} in ${CI_PROJECT_PATH}"
       curl --silent --show-error --fail \
         --request PUT \
         --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
         --data-urlencode "should_remove_source_branch=false" \
-        --data-urlencode "merge_commit_message=Release ${CI_COMMIT_TAG}" \
-        "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}/merge"
+        --data-urlencode "merge_commit_message=Release ${RELEASE_TAG}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge" \
+        > merge_response.json
 
-      echo "Waiting for the merge to complete ..."
-      MR_STATE="unknown"
-      for i in $(seq 1 20); do
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC: Merge Response (PUT ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge):"
+         cat merge_response.json | jq .
+      fi
+
+      MR_STATE=$(jq -r .state merge_response.json)
+      MERGE_COMMIT_SHA=$(jq -r .merge_commit_sha merge_response.json)
+
+      # Bounded retry for GitLab's own async-merge worker (merge trains,
+      # very large diffs). This is a real internal eventual-consistency
+      # wait, not a stand-in for a pipeline that will never exist.
+      i=0
+      while [ "${MR_STATE}" != "merged" ] && [ "$i" -lt 10 ]; do
+        sleep 2
         MR_JSON=$(curl --silent --show-error --fail \
           --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/merge_requests/${MR_IID}")
-        MR_STATE=$(echo "${MR_JSON}" | jq -r .state)
-        if [ "${MR_STATE}" = "merged" ]; then
-          MERGE_COMMIT_SHA=$(echo "${MR_JSON}" | jq -r .merge_commit_sha)
-          break
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}")
+          
+        if [ "$GD_TRACE" = "1" ]; then
+           echo "TRC: Merge Response (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}):"
+           echo "$MR_JSON" | jq .
         fi
-        sleep 15
+          
+        MR_STATE=$(echo "$MR_JSON" | jq -r .state)
+        MERGE_COMMIT_SHA=$(echo "$MR_JSON" | jq -r .merge_commit_sha)
+        echo "$i: waiting for MR($MR_IID): MR_STATE=$MR_STATE, MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA, ..."
+        i=$((i+1))
       done
-      if [ "${MR_STATE}" != "merged" ]; then
-        echo "Merge request was not merged in time."
-        exit 1
-      fi
-      echo "On upstream, MR !${MR_IID}: MERGED ..."
+      [ "${MR_STATE}" = "merged" ] || { echo "Merge did not complete"; exit 1; }
+      echo "#MERGE(upstream): MR !${MR_IID} in ${CI_PROJECT_PATH}"
 
-
-# -----------------------------------------------------------------------------
-# Stage: merge #merge-request (downstream only) - upstream tag
-# -----------------------------------------------------------------------------
-# Project scope    : downstream only (ub-dems/dve-simple-py)
-# Trigger condition: tag v*.*.* (workflow:rules) AND downstream project path;
-#                    MANUAL (see "Stage 3 approval gate" above)
-# Required vars    : GS_UPSTREAM_TOKEN
-
-trigger-upstream-tag:
-  extends:
-    - .ctx-merge-downstream
-    - .gitlab-api-base
-  stage: merge
-  needs:
-    - job: create-merge-request
-      artifacts: true
-    - job: trigger-upstream-merge
-      artifacts: true
-  dependencies:
-    - create-merge-request
-    - trigger-upstream-merge
-  script:
-    - |
-      echo "Tagging upstream main at ${MERGE_COMMIT_SHA} as ${CI_COMMIT_TAG}"
+      echo "Tagging ${CI_PROJECT_PATH} at ${MERGE_COMMIT_SHA} as ${RELEASE_TAG}"
       curl --silent --show-error --fail \
         --request POST \
         --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
-        --data-urlencode "tag_name=${CI_COMMIT_TAG}" \
+        --data-urlencode "tag_name=${RELEASE_TAG}" \
         --data-urlencode "ref=${MERGE_COMMIT_SHA}" \
-        --data-urlencode "message=Release ${CI_COMMIT_TAG}" \
-        "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_ID}/repository/tags"
+        --data-urlencode "message=Release ${RELEASE_TAG}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags"
+      echo "#TAG(upstream): ${CI_PROJECT_PATH} at ${MERGE_COMMIT_SHA} as ${RELEASE_TAG}"
 
 
 # -----------------------------------------------------------------------------
 # Stage: check #validation (upstream only)
 # -----------------------------------------------------------------------------
 
-release-checks-py:
+check-lint-py:
   stage: check
   extends:
-    - .ctx-release-upstream-py
+    - .ctx-merge-upstream-py
     - .uv-validate-check
   script:
     - uv run ruff check
     - uv run ruff format --check
     - uv run pyright
 
-release-licence-all:
+check-licence-all:
   stage: check
   extends:
-    - .ctx-release-upstream
+    - .ctx-merge-upstream
     - .uv-validate-check
   script:
     - uv run reuse lint
 
-release-tests-py:
+check-tests-py:
   stage: check
   extends:
-    - .ctx-release-upstream-py
+    - .ctx-merge-upstream-py
     - .uv-validate-test
   script:
     - uv run pytest -v
     # - uv run pytest -v --cov
+
+check-build-py:
+  stage: check
+  extends:
+    - .ctx-merge-upstream
+    - .uv-validate-build
+  script:
+    - uv build
+    - ls -l dist
+    - du -s dist
+
+check-gate:
+  stage: check
+  extends:
+    - .ctx-merge-upstream
+    - .gitlab-api-base
+  dependencies:
+    - check-licence-all
+    - check-lint-py
+    - check-tests-py
+    - check-build-py
+  script:
+    - echo "#__gitlab-ci:CECK__"
+    - echo "#__gitlab-ci:check(sh.env)__"
+    - env | sort
+    - date
 
 
 # -----------------------------------------------------------------------------
 # Stage: package (unstream only) - uv build + save
 # -----------------------------------------------------------------------------
 
-release-build-py:
+package-build-py:
   stage: package
   extends:
     - .ctx-release-upstream
@@ -800,8 +863,36 @@ release-build-py:
     paths:
       - "dist"
 
+package-gate:
+  stage: package
+  extends:
+    - .ctx-release-upstream
+    - .gitlab-api-base
+  needs:
+    - job: package-build-py
+      artifacts: true
+    # - job: package-build-images
+    #   artifacts: true
+  dependencies:
+    - package-build-py
+    # - package-build-images
+  script:
+    - echo "#__gitlab-ci:CECK__"
+    - echo "#__gitlab-ci:check(sh.env)__"
+    - env | sort
+    - date
+    - ls -la   dist
+    - mkdir -p dist
+    - ls -la   images
+    - mkdir -p images
+  artifacts:
+    paths:
+      - "dist"
+      - "images"
+
+
 # -----------------------------------------------------------------------------
-# Stage: release (unstream only) - create gitlab release
+# Stage: release (unstream only) - create gitlab release (optional)
 # -----------------------------------------------------------------------------
 
 release-collect:
@@ -810,14 +901,20 @@ release-collect:
     - .ctx-release-upstream
     - .uv-validate-build
   needs:
-    - job: release-build-py
+    - job: package-gate
       artifacts: true
   dependencies:
-    - release-build-py
+    - package-gate
   script:
-    - echo "#RELEASE($CI_COMMIT_TAG)"
+    - echo "#RELEASE($CI_COMMIT_TAG) -- MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA"
     - ls -l dist
     - du -s dist
+    - ls -l images
+    - du -s images
+  artifacts:
+    paths:
+      - "dist"
+      - "images"
 
 
 
@@ -826,11 +923,9 @@ release-collect:
 # -----------------------------------------------------------------------------
 # Project scope    : upstream only
 # Trigger condition: tag *.*.* (workflow:rules) AND upstream project path;
-#                    this run starts because the tag above was created on the
-#                    upstream project via the API in the previous stage
 # Required vars    : none
 
-build-base-images:
+package-build-images:
   stage: package
   extends:
     - .ctx-release-image
@@ -848,7 +943,7 @@ build-base-images:
     - podman images
     - df -h
   script:
-    - build.sh image "${IMAGE_NAME}"
+    - build.sh image "${IMAGE_NAME}" "$CI_COMMIT_TAG"
     - mkdir -p images
     - podman save -o "images/${IMAGE_NAME}.tar" "localhost/${IMAGE_NAME}:${CI_COMMIT_TAG}"
   artifacts:
@@ -861,19 +956,22 @@ build-base-images:
 # Stage: image-push (upstream only)
 # -----------------------------------------------------------------------------
 # Project scope    : upstream only (ub-dems-public/dve-simple-py)
-# Trigger condition: tag v*.*.* (workflow:rules) AND upstream project path;
-#                    runs only if every build-image matrix job succeeded
+# Trigger condition: tag *.*.* (workflow:rules) AND upstream project path;
 # Required vars    : REGISTRY_URL, REGISTRY_USER, REGISTRY_PASSWORD
-push-base-images:
+
+publish-push-images:
   stage: publish
   extends:
     - .ctx-release-image
     - .podman-base
   needs:
-    - job: build-base-images
+    - job: package-build-images
+      artifacts: true
+    - job: release-collect
       artifacts: true
   dependencies:
-    - build-base-images
+    - package-build-images
+    - release-collect
   script:
     - podman login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
     - |
