@@ -739,6 +739,7 @@ trigger-upstream-sync:
     MR_IID: $MR_IID
     RELEASE_TAG: $CI_COMMIT_TAG
     SOURCE_PROJECT_ID: $CI_PROJECT_ID    
+    GS_SOURCE_API_TOKEN: $GS_DOWNSTREAM_TOKEN
 
 
 # -----------------------------------------------------------------------------
@@ -815,17 +816,17 @@ upstream-merge-and-tag:
     - job: check-gate
   script:
     - |
-      echo "Merging MR !${MR_IID} in ${CI_PROJECT_PATH}"
+      echo "Merging MR !${MR_IID} in ${CI_PROJECT_PATH} on project ${SOURCE_PROJECT_ID}"
       curl --silent --show-error --fail \
         --request PUT \
-        --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+        --header "PRIVATE-TOKEN: ${GS_SOURCE_API_TOKEN}" \
         --data-urlencode "should_remove_source_branch=false" \
         --data-urlencode "merge_commit_message=Release ${RELEASE_TAG}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge" \
+        "${CI_API_V4_URL}/projects/${SOURCE_PROJECT_ID}/merge_requests/${MR_IID}/merge" \
         > merge_response.json
 
       if [ "$GD_TRACE" = "1" ]; then
-         echo "TRC: Merge Response (PUT ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge):"
+         echo "TRC: Merge Response (PUT ${CI_API_V4_URL}/projects/${SOURCE_PROJECT_ID}/merge_requests/${MR_IID}/merge):"
          cat merge_response.json | jq .
       fi
 
