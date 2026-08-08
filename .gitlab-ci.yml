@@ -40,7 +40,7 @@ spec:
     gd-upstream-project-main:
       default: "main"
     gd-version-schema:
-      default: '^\d+\.\d+\.\d+(-.+)?$'
+      default: '^\d+\.\d+\.\d+(.+)?$'
     gd-python-version:
       default: '3.14'
     gd-image-names:
@@ -199,7 +199,9 @@ variables:
   # --- index override: redirect "torch-gpu" to CPU wheel server in CI ---
   # uv resolves UV_INDEX_<NAME_UPPER> where hyphens become underscores.
   # CPU wheels do not include triton, saving ~1.5 GB per job.
-  UV_INDEX_TORCH_GPU: "https://download.pytorch.org/whl/cpu"
+  # UV_INDEX_TORCH_GPU: "https://download.pytorch.org/whl/cpu"
+  
+  X_UV_EXTRA: "cpu"
 
   # --- disable progress bars (cleaner CI logs) ---
   UV_NO_PROGRESS: "1"
@@ -458,7 +460,7 @@ workflow:
     - .uv-validate-base
   before_script:
     - !reference [.uv-validate-base, before_script]
-    - uv sync --group dev
+    - uv sync --group dev --extra="$X_UV_EXTRA"
     - df -h
 
 .uv-validate-test:
@@ -469,7 +471,7 @@ workflow:
     # pyright requires all project imports to be resolvable, so main deps
     # (including CPU torch) must be present.  UV_INDEX_TORCH_GPU redirects
     # the cu130 index to the CPU wheel server; triton is not a dep of CPU torch.
-    - uv sync --group dev
+    - uv sync --group dev --extra="$X_UV_EXTRA"
     - df -h
 
 .uv-validate-build:
@@ -478,7 +480,7 @@ workflow:
   before_script:
     - !reference [.uv-validate-base, before_script]
     # setup for for hatchling builder with wheels support 
-    - uv sync --group dev
+    - uv sync --group dev --extra="$X_UV_EXTRA"
     - df -h
 
 
@@ -564,13 +566,13 @@ debug-pipeline:
   stage: debug
   extends:
     - .ctx-pipeline-debug
-    - .uv-validate-lint
+    - .uv-validate-test
   script:
     - echo "#__gitlab-ci:DEBUG__"
     - echo "#__gitlab-ci:debug(sh.env)__"
     - env | sort
     - echo "#__gitlab-ci:debug(uv.venv)__"
-    - uv tree --show-sizes
+    - uv tree --group=dev --show-sizes
     - uv pip list
     - du -sh .venv
     - df -h

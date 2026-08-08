@@ -43,37 +43,33 @@ authors = [
 # ============================================================
 dependencies = [
 
+  # --------------------------------------------------------------------
   # --- ML frameworks ---
-  # Index source: controlled by [[tool.uv.index]] name = "torch-gpu".
-  # In GPU environments (dev / test / prod) the index resolves to:
-  # https:^//download.pytorch.org/whl/cu130
-  # In CI set:
-  # UV_INDEX_TORCH_GPU=https:^//download.pytorch.org/whl/cpu
-  # to redirect to the CPU wheel server, eliminating triton and all
-  # CUDA-bundled libraries from the virtual environment  # "tensorflow==2.20.*",
-
-  "torch==2.10.*",
-  "torchvision==0.25.*",
-
-
-  ### # torch: full specification
-  ### # see: notes/howtos/Python-Q2-GitLab-CI-Setup.md
-  ### 
-  ### # CPU-only PyTorch for CI
-  ### "torch==2.10.*; sys_platform != 'linux' or platform_system != 'Linux'",
-  ### "torch==2.10.*+cpu; sys_platform == 'linux' and platform_system == 'Linux' and 'CI' in os.environ",
-  ### # GPU PyTorch for native/containerized
-  ### "torch==2.10.*+cu121; sys_platform == 'linux' and platform_system == 'Linux' and 'CI' not in os.environ",
-  ### 
-  ### "torchvision==0.25.*; sys_platform != 'linux' or platform_system != 'Linux'",
-  ### "torchvision==0.25.*+cpu; sys_platform == 'linux' and platform_system == 'Linux' and 'CI' in os.environ",
-  ### "torchvision==0.25.*+cu121; sys_platform == 'linux' and platform_system == 'Linux' and 'CI' not in os.environ",
-
-
-  ### "tensorflow==2.21.*",
-  ### "tensorflow-datasets==4.9.*",
-  ### "tensorboard",
-
+  # --------------------------------------------------------------------
+  #
+  # moved to [project.optional-dependencies]
+  # to support both 'gpu' and 'cpu' architectures
+  #
+  # usage:
+  #
+  #   uv lock
+  #
+  #   uv sync --all-groups --extra=gpu  
+  # or 
+  #   uv sync --all-groups --extra=cpu
+  #
+  #
+  # to detect GPU, in shell:
+  #
+  # (type nvidia-smi && nvidia-smi -L) &> /dev/null \
+  #   && HAS_GPU=1 || HAS_GPU=0; echo $HAS_GPU
+  #
+  # see:
+  # - https://docs.astral.sh/uv/guides/integration/pytorch/
+  # - https://zenn.dev/haru256/articles/6ded722b409d13?locale=en
+  # - AGENTS.md
+  # --------------------------------------------------------------------
+  
 
   # --- data ---
   "numpy",
@@ -89,6 +85,9 @@ dependencies = [
   "psycopg2-binary",
   "mysql-connector-python",
   # "mysqlclient",
+  
+  # --- db ---
+  "duckdb",
 
   # --- stats ---
   "scipy",
@@ -144,10 +143,37 @@ dependencies = [
 # ============================================================
 [project.optional-dependencies]
 
-gpumon = [
+cpu = [
+
+  "torch==2.10.*",
+  "torchvision==0.25.*",
+
+]
+
+gpu = [
+
+  "torch==2.10.*",
+  "torchvision==0.25.*",
+
+  ### "tensorflow==2.21.*",
+  ### "tensorflow-datasets==4.9.*",
+  ### "tensorboard",
+
+  
   ## "pynvml; sys_platform == 'linux'",
   "nvidia-ml-py; sys_platform == 'linux'",
+
+  # Index source: controlled by [[tool.uv.index]] name = "torch-gpu".
+  # In GPU environments (dev / test / prod) the index resolves to:
+  # https:^//download.pytorch.org/whl/cu130
+  # In CI set:
+  # UV_INDEX_TORCH_GPU=https:^//download.pytorch.org/whl/cpu
+  # to redirect to the CPU wheel server, eliminating triton and all
+  # CUDA-bundled libraries from the virtual environment  # "tensorflow==2.20.*",
+
+  
 ]
+
 
 # ============================================================
 # Project URLs
@@ -285,12 +311,25 @@ dev = [
 # Treat this directory as an installable package
 package = true
 
+# Prevent both "cpu" and "gpu" from being specified at the same time
+conflicts = [
+  [
+    { extra = "cpu" },
+    { extra = "gpu" },
+  ],
+]
+
 [tool.uv.sources]
-# Both packages resolved from the "torch-gpu" named index.
-# Override in CI with: UV_INDEX_TORCH_GPU=https://download.pytorch.org/whl/cpu
-torch = { index = "torch-gpu" }
-torchvision = { index = "torch-gpu" }
 packaging = { index = "pypi" }
+
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-gpu", extra = "gpu" },
+]
+torchvision = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-gpu", extra = "gpu" },
+]
 
 ### [tool.uv.environment]
 ### # For CI: Force CPU-only
@@ -303,13 +342,13 @@ url = " https://pypi.org/simple"
 explicit = false
 
 
-
 [[tool.uv.index]]
 # GPU default: CUDA 13.0-compiled wheels (driver ^>= 580).
 # Rename from "torch130" to "torch-gpu" so the uv env-var override reads:
 # UV_INDEX_TORCH_GPU=<url>
-name = "torch-gpu"
+name = "pytorch-gpu"
 url = "https://download.pytorch.org/whl/cu130"
+explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

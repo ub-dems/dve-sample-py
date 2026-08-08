@@ -24,6 +24,25 @@
 
 Always detect for `.env` file in project root. If present, add option `--env-file` to `uv run` commands, in this way: `uv run --env-file=.env ...`
 
+### Architecture
+
+Before Python package installation, always detect GPU availability with command:
+
+```bash
+(type nvidia-smi && nvidia-smi -L) &> /dev/null \
+    && X_HAS_GPU=1 || X_HAS_GPU=0; \
+case "$X_HAS_GPU" in \
+     1) export X_UV_EXTRA='gpu' ;; \
+     *) export X_UV_EXTRA='cpu' ;; \
+esac                                 
+```
+
+then, after `pyproject.toml` update, resolve dependencies and install with:
+
+```bash
+uv lock && uv sync --extra=$X_UV_EXTRA --all-groups
+```
+
 ---
 
 ## Commands
@@ -39,7 +58,7 @@ Always detect for `.env` file in project root. If present, add option `--env-fil
 | Lint                | `uv run ruff check --fix <file>`                       |
 | Format              | `uv run ruff format <file>`                            |
 | License check       | `uv run reuse lint`                                    |
-| Install Python deps | `uv lock && uv sync --all-extras --all-groups`         |
+| Install Python deps | `uv lock && uv sync --extra=$X_UV_EXTRA --all-groups`  |
 | Install Node deps   | `uv run jlpm up && uv run jlpm install`                |
 | Manual checks       | `prek run --from-ref <target_branch> --stage manual`   |
 | Build docs          | `bash ./build.sh docs`                                 |
@@ -91,3 +110,7 @@ They are referenced here and included verbatim in `.claude/CLAUDE.md`.
 | `vce-project-layout`   | navigating source tree, locating files, understanding directory roles   |
 | `vce-project-scripts`  | running build/container/runtime commands via `build.sh` or `runtime.sh` |
 | `vce-coding-standards` | writing, editing, reviewing, or testing Python/R/JS code                |
+
+<!-- 
+LocalWords:  esac uv
+ -->
