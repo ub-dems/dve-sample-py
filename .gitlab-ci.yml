@@ -683,12 +683,31 @@ create-merge-request:
   stage: merge
   script:
     - |
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:> Upstream Project Request (GET ${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_PATH_ENCODED}"
+      fi
+      
       UPSTREAM_PROJECT_ID=$(curl --silent --show-error --fail \
         --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
         "${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_PATH_ENCODED}" | jq -r .id)
 
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:< Upstream Project Request (GET ${CI_API_V4_URL}/projects/${UPSTREAM_PROJECT_PATH_ENCODED}"
+         echo "TRC:< UPSTREAM_PROJECT_ID=${UPSTREAM_PROJECT_ID}"
+      fi
+      
       echo "Resolved upstream project id: ${UPSTREAM_PROJECT_ID}"
 
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:> Merge Request (POST ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests)"
+         echo "TRC:> Merge Request Args:"
+         echo "TRC:> - source_branch=${MR_SOURCE_BRANCH}"
+         echo "TRC:> - target_branch=${MR_TARGET_BRANCH}"
+         echo "TRC:> - target_project_id=${UPSTREAM_PROJECT_ID}"
+         echo "TRC:> - title=Release ${CI_COMMIT_TAG}: sync downstream to upstream main"
+         echo "TRC:> - description=Automated release MR for tag ${CI_COMMIT_TAG}. Source: ${CI_PROJECT_PATH}@${CI_COMMIT_SHA}."
+      fi
+      
       RESPONSE=$(curl --silent --show-error --fail \
         --request POST \
         --header "PRIVATE-TOKEN: ${GS_DOWNSTREAM_TOKEN}" \
@@ -699,6 +718,11 @@ create-merge-request:
         --data-urlencode "description=Automated release MR for tag ${CI_COMMIT_TAG}. Source: ${CI_PROJECT_PATH}@${CI_COMMIT_SHA}." \
         "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests")
 
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:< Merge Response (POST ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests)"
+         echo "$RESPONSE" | jq .
+      fi
+      
       MR_IID=$(echo "${RESPONSE}" | jq -r '.iid // empty')
       if [ -z "${MR_IID}" ]; then
         echo "Failed to create merge request:"
@@ -739,7 +763,7 @@ trigger-upstream-sync:
     MR_IID: $MR_IID
     RELEASE_TAG: $CI_COMMIT_TAG
     SOURCE_PROJECT_ID: $CI_PROJECT_ID    
-    GS_SOURCE_API_TOKEN: $GS_DOWNSTREAM_TOKEN
+    # GS_SOURCE_API_TOKEN: $GS_DOWNSTREAM_TOKEN
 
 
 # -----------------------------------------------------------------------------
@@ -816,55 +840,137 @@ upstream-merge-and-tag:
     - job: check-gate
   script:
     - |
-      echo "Merging MR !${MR_IID} in ${CI_PROJECT_PATH} on project ${SOURCE_PROJECT_ID}"
-      curl --silent --show-error --fail \
-        --request PUT \
-        --header "PRIVATE-TOKEN: ${GS_SOURCE_API_TOKEN}" \
-        --data-urlencode "should_remove_source_branch=false" \
-        --data-urlencode "merge_commit_message=Release ${RELEASE_TAG}" \
-        "${CI_API_V4_URL}/projects/${SOURCE_PROJECT_ID}/merge_requests/${MR_IID}/merge" \
-        > merge_response.json
+
+      echo "#commit(tag:${RELEASE_TAG}):>> Merging MR !${MR_IID} in ${CI_PROJECT_PATH}"
+
+      echo "Inspecting MR !${MR_IID} in ${CI_PROJECT_PATH}"
 
       if [ "$GD_TRACE" = "1" ]; then
-         echo "TRC: Merge Response (PUT ${CI_API_V4_URL}/projects/${SOURCE_PROJECT_ID}/merge_requests/${MR_IID}/merge):"
-         cat merge_response.json | jq .
+         echo "TRC:> MR Status Request (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID})"
       fi
 
-      MR_STATE=$(jq -r .state merge_response.json)
-      MERGE_COMMIT_SHA=$(jq -r .merge_commit_sha merge_response.json)
+      MR_JSON=$(curl --silent --show-error --fail \
+        --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}")
 
-      # Bounded retry for GitLab's own async-merge worker (merge trains,
-      # very large diffs). This is a real internal eventual-consistency
-      # wait, not a stand-in for a pipeline that will never exist.
-      i=0
-      while [ "${MR_STATE}" != "merged" ] && [ "$i" -lt 10 ]; do
-        sleep 2
-        MR_JSON=$(curl --silent --show-error --fail \
-          --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}")
-          
-        if [ "$GD_TRACE" = "1" ]; then
-           echo "TRC: Merge Response (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}):"
-           echo "$MR_JSON" | jq .
-        fi
-          
-        MR_STATE=$(echo "$MR_JSON" | jq -r .state)
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:< MR Status Response (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID})"
+         echo "$MR_JSON" | jq .
+      fi
+
+      MR_STATE=$(echo "$MR_JSON" | jq -r .state)
+      TARGET_BRANCH=$(echo "$MR_JSON" | jq -r .target_branch)
+      CHANGES_COUNT=$(echo "$MR_JSON" | jq -r '.changes_count // "unknown"')
+
+      if [ "$MR_STATE" = "merged" ]; then
+        echo "MR already merged (idempotent re-run); reusing merge_commit_sha"
         MERGE_COMMIT_SHA=$(echo "$MR_JSON" | jq -r .merge_commit_sha)
-        echo "$i: waiting for MR($MR_IID): MR_STATE=$MR_STATE, MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA, ..."
-        i=$((i+1))
-      done
-      [ "${MR_STATE}" = "merged" ] || { echo "Merge did not complete"; exit 1; }
-      echo "#MERGE(upstream): MR !${MR_IID} in ${CI_PROJECT_PATH}"
+
+      elif [ "$CHANGES_COUNT" = "0" ]; then
+        echo "MR has no diff vs ${TARGET_BRANCH}: nothing to merge, treating as in-sync."
+
+        if [ "$GD_TRACE" = "1" ]; then
+           echo "TRC:> Get MAIN head commit Request (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/branches/${TARGET_BRANCH})"
+        fi
+
+        MERGE_COMMIT_SHA=$(curl --silent --show-error --fail \
+          --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/branches/${TARGET_BRANCH}" \
+          | jq -r .commit.id)
+
+        if [ "$GD_TRACE" = "1" ]; then
+           echo "TRC:< Get MAIN head commit Request (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/branches/${TARGET_BRANCH})"
+           echo "TRC:< MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA"
+        fi
+
+      else
+
+        if [ "$GD_TRACE" = "1" ]; then
+           echo "TRC:> Merge Request (PUT ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge)"
+           echo "TRC:> Merge Request Args:"
+           echo "TRC:> - should_remove_source_branch=false"
+           echo "TRC:> - merge_commit_message=Release ${RELEASE_TAG}"
+        fi
+
+        HTTP_CODE=$(curl --silent --show-error \
+          --request PUT \
+          --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+          --data-urlencode "should_remove_source_branch=false" \
+          --data-urlencode "merge_commit_message=Release ${RELEASE_TAG}" \
+          --output merge_response.json \
+          --write-out "%{http_code}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge")
+
+        if [ "$GD_TRACE" = "1" ]; then
+           echo "TRC:< Merge Response (PUT ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/merge)"
+           echo "TRC:< HTTP $HTTP_CODE"
+           cat merge_response.json | jq .
+        fi
+        
+        if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ]; then
+          echo "Merge rejected (HTTP $HTTP_CODE): $(jq -r '.message // .' merge_response.json)"
+          exit 1
+        fi
+
+        MR_STATE=$(jq -r .state merge_response.json)
+        MERGE_COMMIT_SHA=$(jq -r .merge_commit_sha merge_response.json)
+
+        # Bounded retry for GitLab's own async-merge worker (merge trains,
+        # very large diffs). This is a real internal eventual-consistency
+        # wait, not a stand-in for a pipeline that will never exist.
+        i=0
+        while [ "${MR_STATE}" != "merged" ] && [ "$i" -lt 10 ]; do
+          sleep 2
+          
+          if [ "$GD_TRACE" = "1" ]; then
+             echo "TRC:> Merge Status Request (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}):"
+          fi
+          
+          MR_JSON=$(curl --silent --show-error --fail \
+            --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}")
+
+          if [ "$GD_TRACE" = "1" ]; then
+             echo "TRC:< Merge Status Response (GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}):"
+             echo "$MR_JSON" | jq .
+          fi
+
+          MR_STATE=$(echo "$MR_JSON" | jq -r .state)
+          MERGE_COMMIT_SHA=$(echo "$MR_JSON" | jq -r .merge_commit_sha)
+          echo "$i: waiting for MR($MR_IID): MR_STATE=$MR_STATE"
+          i=$((i+1))
+        done
+        [ "${MR_STATE}" = "merged" ] || { echo "Merge did not complete"; exit 1; }
+      fi
+
+      echo "#commit(tag:${RELEASE_TAG}):<< Merged MR !${MR_IID}  in ${CI_PROJECT_PATH}"
+      echo "#commit(tag:${RELEASE_TAG}):>> Tagging tag:${RELEASE_TAG} at ${MERGE_COMMIT_SHA}"
 
       echo "Tagging ${CI_PROJECT_PATH} at ${MERGE_COMMIT_SHA} as ${RELEASE_TAG}"
-      curl --silent --show-error --fail \
+
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:> Tag Request (POST ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags)"
+         echo "TRC:> Tag Request Args:"
+         echo "TRC:> - tag_name=${RELEASE_TAG}"
+         echo "TRC:> - ref=${MERGE_COMMIT_SHA}"
+         echo "TRC:> - message=Release: ${RELEASE_TAG}"
+      fi
+
+      MR_JSON=$(curl --silent --show-error --fail \
         --request POST \
         --header "PRIVATE-TOKEN: ${GS_UPSTREAM_TOKEN}" \
         --data-urlencode "tag_name=${RELEASE_TAG}" \
         --data-urlencode "ref=${MERGE_COMMIT_SHA}" \
         --data-urlencode "message=Release ${RELEASE_TAG}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags"
-      echo "#TAG(upstream): ${CI_PROJECT_PATH} at ${MERGE_COMMIT_SHA} as ${RELEASE_TAG}"
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags")
+
+
+      if [ "$GD_TRACE" = "1" ]; then
+         echo "TRC:< Tag Response (POST ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags)"
+         echo "$MR_JSON" | jq .
+      fi
+
+      echo "#commit(tag:${RELEASE_TAG}):>> #TAG(upstream) ${CI_PROJECT_PATH} at ${MERGE_COMMIT_SHA} as ${RELEASE_TAG}"
 
 
 # -----------------------------------------------------------------------------
