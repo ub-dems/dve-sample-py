@@ -1,10 +1,10 @@
 # ---
-#+TITLE: "dve-simple-py" Python  project template
+#+TITLE: "dve-simple-r" R  project template
 SUBTITLE:  org info project todos
 #+AUTHOR: --
 #+DATE: <2024-07-31>
 # ---
-#+CATEGORY: py-template
+#+CATEGORY: r-template
 #+STARTUP: content
 ## Local Variables:
 ## eval: (add-to-list 'org-agenda-files (buffer-file-name) 'append)
@@ -19,17 +19,15 @@ SUBTITLE:  org info project todos
 --------------------------------------------------------------------------------------------------
 * @BACKLOG
 
-
-** BACK [#C] Python worker  [0/8]                :@W:template:python:
-   + [ ] build worker fron poetry cache
-   + [ ] build worker fron poetry install
+** BACK [#C] R worker  [0/8]                          :@W:template:r:
+   + [ ] build worker fron renv cache
+   + [ ] build worker fron renv install
    + [ ] package and push
    + [ ] pull and deploy
    + [ ] data sharing
-   + [ ] direct run
-   + [ ] incremental run
-   + [ ] parallel run
-
+   + [ ] direct run (without targets)
+   + [ ] incremental run (with targets)
+   + [ ] parallel run (with targets + ZMQ)
 
 
 --------------------------------------------------------------------------------------------------
@@ -37,4 +35,34 @@ SUBTITLE:  org info project todos
      
 --------------------------------------------------------------------------------------------------
 * @ATTIC
+
+
+** DONE [#B] ac r-template [6/6]
+SCHEDULED: <2022-07-14 Thu>
+   [[file:~/work/vs/dve-sample-r/DESCRIPTION::Type: Package][dve-sample-r]]
+   + [X] gitlab definition
+   + [X] project custom
+   + [X] project test
+   + [X] project data
+   + [X] renv init
+   + [X] "dev guide" dccumentation 
+
+
+---------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+* @ACTIVE
+
+* @BACKLOG                                                     
+
+---------------------------------------------------------------------------------------------------
+
+* @ATTIC
+
+* @WBS
      

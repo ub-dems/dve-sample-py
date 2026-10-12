@@ -459,7 +459,7 @@ pyenv versions
 export PYTHON_CONFIGURE_OPTS="--enable-shared"
 
 
-PYRC_PY_CURRENT=$(curl https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/raw/main/.python-version); echo $PYRC_PY_CURRENT
+PYRC_PY_CURRENT=$(curl https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/raw/main/.python-version); echo $PYRC_PY_CURRENT
 
 : ${PYRC_PY_VERSION:=$PYRC_PY_CURRENT}; export PYRC_PY_VERSION
 [ -f ~/.python-version ] || echo "${PYRC_PY_VERSION}" > ~/.python-version
@@ -636,7 +636,7 @@ PYTHON_KEYRING_BACKEND="keyring.backends.null.Keyring"  \
 if [ ! -d ~/work/vs/dve-sample-py ]; then
     mkdir -p ~/work/vs
     cd       ~/work/vs
-    git clone https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git
+    git clone https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git
 fi      
 cd ~/work/vs/dve-sample-py
 git remote update

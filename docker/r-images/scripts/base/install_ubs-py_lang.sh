@@ -94,19 +94,19 @@ function install_reticulate() {
     
     [ "$Y_PY_RETICULATE_INSTALL" = 1 ] || return 0
 
-    eval "export X_ENV_PATH=$(bash --login -i -c 'printf \"%s\" "$PATH"' | tail -n1)"
- #   eval "export X_ENV_VENV=$(poetry env info --path)"
+#     eval "export X_ENV_PATH=$(bash --login -i -c 'printf \"%s\" "$PATH"' | tail -n1)"
+#  #   eval "export X_ENV_VENV=$(poetry env info --path)"
     
-    sed -i '/PATH=/d' \
-        "${R_HOME}/etc/Renviron.site"
+#     sed -i '/PATH=/d' \
+#         "${R_HOME}/etc/Renviron.site"
 
-    sed -i '/VIRTUAL_ENV=/d' \
-        "${R_HOME}/etc/Renviron.site"
+#     sed -i '/VIRTUAL_ENV=/d' \
+#         "${R_HOME}/etc/Renviron.site"
 
-    cat <<EOR >>"${R_HOME}/etc/Renviron.site"
-PATH=${X_ENV_PATH}
-#VIRTUAL_ENV=${X_ENV_VENV}
-EOR
+#     cat <<EOR >>"${R_HOME}/etc/Renviron.site"
+# PATH=${X_ENV_PATH}
+# #VIRTUAL_ENV=${X_ENV_VENV}
+# EOR
 
     
     ## R - python
@@ -117,7 +117,7 @@ EOR
 
 
 function clean_up() {
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*  2> /dev/null
 }
 
 

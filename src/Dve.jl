@@ -15,7 +15,7 @@ module Dve
 # ## minimal version of conveniently using SymPy in Julia
 # ## uses getfield overloading to access sympy methods of Sym object
 
-# using PyCall
+using PythonCall
 
 # using SpecialFunctions
 # using LinearAlgebra
@@ -62,27 +62,27 @@ module Dve
 
 # ##################################################
 
-# pynull() = PyCall.PyNULL()
+# pynull() = PythonCall.PyNULL()
 # """
 #     sympy
 
 # Variable from `pyimport("sympy")`. Numerous methods are available through Python's dot-call syntax.
 # """
-# const sympy  = PyCall.PyNULL()
+# const sympy  = PythonCall.PyNULL()
 # """
 #     sympy_core
 
 # Variable from `pyimport("sympy.core")`.
 # """
-# const sympy_core =  PyCall.PyNULL()
+# const sympy_core =  PythonCall.PyNULL()
 # """
 #     sympy_matrices
 
 # Variable from `pyimport("sympy.matrices")`.
 # """
-# const sympy_matrices =  PyCall.PyNULL()
-# const mpmath = PyCall.PyNULL()
-# const combinatorics  = PyCall.PyNULL()
+# const sympy_matrices =  PythonCall.PyNULL()
+# const mpmath = PythonCall.PyNULL()
+# const combinatorics  = PythonCall.PyNULL()
 
 # # core.sympy.numbers.*
 # "PI is symbolic `pi`"
@@ -104,27 +104,27 @@ module Dve
 # function __init__()
 
 #     ## Define sympy, mpmath, ...
-#     copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
-#     copy!(sympy_core, PyCall.pyimport("sympy.core"))
-#     copy!(sympy_matrices, PyCall.pyimport("sympy.matrices"))
+#     copy!(sympy, PythonCall.pyimport_conda("sympy", "sympy"))
+#     copy!(sympy_core, PythonCall.pyimport("sympy.core"))
+#     copy!(sympy_matrices, PythonCall.pyimport("sympy.matrices"))
 #     copy!(PI.__pyobject__,  sympy.pi)
 #     copy!(IM.__pyobject__, sympy.I)
 #     copy!(oo.__pyobject__, sympy.oo)
 #     copy!(zoo.__pyobject__, sympy.zoo)
-#     copy!(True.__pyobject__, PyCall.PyObject(true))
-#     copy!(False.__pyobject__, PyCall.PyObject(false))
+#     copy!(True.__pyobject__, PythonCall.PyObject(true))
+#     copy!(False.__pyobject__, PythonCall.PyObject(false))
 
 
 #     # mpmath
 #     try
-#         PyCall.mpmath_init()
-#         copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))
+#         PythonCall.mpmath_init()
+#         copy!(mpmath, PythonCall.pyimport_conda("mpmath", "mpmath"))
 #     catch err
 #        # can't load
 #     end
 
 #     # pull in alibrary
-#     copy!(combinatorics, PyCall.pyimport_conda("sympy.combinatorics", "sympy"))
+#     copy!(combinatorics, PythonCall.pyimport_conda("sympy.combinatorics", "sympy"))
 
 
 #     ## mappings from PyObjects to types.
@@ -144,7 +144,7 @@ module Dve
 #     pytype_mapping(sympy.combinatorics.permutations.Permutation, SymPermutation)
 #     pytype_mapping(combinatorics.perm_groups.PermutationGroup, SymPermutationGroup)
 
-#     if mpmath != PyCall.PyNULL()
+#     if mpmath != PythonCall.PyNULL()
 #         ## ignore warnings for now...
 #         mpftype = mpmath."mpf"
 #         pytype_mapping(mpftype, BigFloat) ## Raises warning!!!
@@ -221,7 +221,7 @@ module Dve
 
 # """
 # function import_sympy()
-#     if mpmath != PyCall.PyNULL()
+#     if mpmath != PythonCall.PyNULL()
 #         mps = _get_member_functions(mpmath, base_exclude)
 #         sps = Introspection.getmembers(sympy)
 #         imp = Tuple(Symbol.(setdiff(keys(mps), keys(sps))))

@@ -77,7 +77,7 @@ data:
         size: 3
 
       database: ${X_DB_DEMO_DATABASE:-demo}
-      path: ${X_DB_DEMO_PATH:-data/int/test}
+      path: ${X_DB_DEMO_PATH:-data/ext/test/demo}
 
       uri: "{type}+{driver}:///{path}/{database}.db"
 

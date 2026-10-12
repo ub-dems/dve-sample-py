@@ -21,17 +21,30 @@ build-backend = "hatchling.build"
 # ============================================================
 [project]
 name = "dve_sample_py"
-version = "0.1.0"
-description = "TODO(title): TITLE OF THE RESEARCH WORK / TITOLO DEL LAVORO DI RICERCA"
+version = "1.0.0"
+description = "TODO(title): TITLE OF THE RESEARCH WORK"
 readme = "README.md"
-license-files = [
-     "LICENSES/*.txt",
-     "LICENSE.md",
-]
+license-files = ["LICENSES/*.txt", "LICENSE.md"]
 requires-python = ">=3.14,<3.15"
 
 authors = [
-  { name = "Data Science Lab DEMS/datalab", email = "datalab@unimib.it" },
+  { name = "dsuser/ub-dems", email = "dsuser@campus.unimib.it" },
+]
+classifiers = [
+  # see: https://pypi.org/classifiers/
+  
+  # Indicate who your project is intended for
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+
+  # "Environment :: GPU :: NVIDIA CUDA",
+
+  # Specify the Python versions you support here.
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  
+  # Specify the Licence.
+  "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
 ]
 
 # }}} //
@@ -69,7 +82,7 @@ dependencies = [
   # - https://zenn.dev/haru256/articles/6ded722b409d13?locale=en
   # - AGENTS.md
   # --------------------------------------------------------------------
-  
+
 
   # --- data ---
   "numpy",
@@ -79,25 +92,27 @@ dependencies = [
   # "h5py",
   "pyarrow",
   "polars",
+  "py7zr",
 
   # --- sql ---
   "SQLAlchemy",
   "psycopg2-binary",
   "mysql-connector-python",
   # "mysqlclient",
-  
+
   # --- db ---
   "duckdb",
 
   # --- stats ---
   "scipy",
-  "sympy",
+  "statsmodels",
 
   # --- plots ---
   "matplotlib",
   "plotly",
   "seaborn",
   "Pillow",
+  "geopandas",
 
   # --- graphs ---
   "graphframes",
@@ -144,10 +159,12 @@ dependencies = [
 [project.optional-dependencies]
 
 cpu = [
-
+  
   "torch==2.10.*",
   "torchvision==0.25.*",
 
+  "keras",
+  
 ]
 
 gpu = [
@@ -155,11 +172,13 @@ gpu = [
   "torch==2.10.*",
   "torchvision==0.25.*",
 
+  "keras",
+
   ### "tensorflow==2.21.*",
   ### "tensorflow-datasets==4.9.*",
   ### "tensorboard",
 
-  
+
   ## "pynvml; sys_platform == 'linux'",
   "nvidia-ml-py; sys_platform == 'linux'",
 
@@ -171,7 +190,7 @@ gpu = [
   # to redirect to the CPU wheel server, eliminating triton and all
   # CUDA-bundled libraries from the virtual environment  # "tensorflow==2.20.*",
 
-  
+
 ]
 
 
@@ -180,9 +199,9 @@ gpu = [
 # ============================================================
 
 [project.urls]
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 # ============================================================
 # Script commands
@@ -210,38 +229,48 @@ agents = [
 
 ]
 
+julia = [
+
+  # --- lang ---
+  "juliacall",
+  
+
+]
+
 jupyter = [
 
-  # --- jupyter ---
+  # --- core ---
   "jupyter",
-  "jupyter-core",
-  "jupyter-console",
-  "jupyter-lsp",
-  "notebook",
   "jupyterlab",
   "jupytext",
+  "httpx",      # Fixes the PyPI extension manager proxy crash
+  # "httpx<0.28.0", # Fixes the PyPI extension manager proxy crash
 
-  "nodeenv",
-  "nodejs",
-
-  "jupyterlab-lsp",
-  "jupyter-ruff",
-
-  # "pyright",
-  # "python-lsp-server[yapf,rope,pyflakes]",
-  # "python-lsp-black",
-  # "black[jupyter]",
-
-  "lux-api",
-
+  # --- kernel & debug ---
   "ipykernel",
   "ipywidgets",
   "ipython",
-  "ipython-bg",
+
+  # --- export ---
+  "nbconvert[webpdf]",
+  "kaleido",
+  # "kaleido==0.1.0post1",
+
+
+  # --- node-js ---
+  "nodeenv",
+  "nodejs",
+
+  # --- extensions ---
+  "jupyterlab-lsp",
+  "jupyter-ruff",
+
+  # --- profiling (modern alternative to lux-api) ---
+  # "ydata-profiling",
 
   # --- marimo ---
-
   "marimo",
+
 ]
 
 dev = [
@@ -261,6 +290,8 @@ dev = [
   # --- edit ---
   "pyright",
   "basedpyright",
+  "ty",
+  "rassumfrassum",
   "tree-sitter",
   "semgrep",
   "mypy",
@@ -280,6 +311,10 @@ dev = [
   # "nbsphinx",
   # "sphinx-autoapi",
   # "sphinx-rtd-theme",
+
+  # --- math ---
+  "sympy",
+  "sympy_plot_backends[all]",
 
   # --- data ---
   "csvkit",
@@ -304,7 +339,7 @@ dev = [
 # ============================================================
 
 # ===[ENV]=================================================================
-  
+
 # --- [uv] ---------------------------------------------------
 
 [tool.uv]
@@ -312,12 +347,7 @@ dev = [
 package = true
 
 # Prevent both "cpu" and "gpu" from being specified at the same time
-conflicts = [
-  [
-    { extra = "cpu" },
-    { extra = "gpu" },
-  ],
-]
+conflicts = [[{ extra = "cpu" }, { extra = "gpu" }]]
 
 [tool.uv.sources]
 packaging = { index = "pypi" }
@@ -355,7 +385,7 @@ name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
-  
+
 # # --- [poetry] ---------------------------------------------------
 
 # [tool.poetry]
@@ -375,11 +405,11 @@ explicit = true
 # git = "https://github.com/hute37/python-rootpath"
 # branch = "stable"
 
-  
+
 # ===[BUILD]=================================================================
-  
+
 # see: https://packaging.python.org/en/latest/tutorials/packaging-projects/#choosing-a-build-backend
-  
+
 # --- [hatch] ---------------------------------------------------
 
 [tool.hatch.metadata]
@@ -444,7 +474,7 @@ log_cli = true
 log_cli_level = "DEBUG"
 
 # ===[LINT]=================================================================
-  
+
 # --- [mypy] ---------------------------------------------------
 
 [tool.mypy]
@@ -457,7 +487,8 @@ ignore_missing_imports = true
 [tool.pyright]
 include = ["src", "tests/pytest", "notebooks"]
 exclude = [
-  "notebooks/@databricks/*",
+  "notebooks/samples/Attic/*",
+  "**/*.ipynb",
   "doc/*",
   "home/*",
   "notes/*",
@@ -483,7 +514,7 @@ reportMissingImports = true
 # --- [ruff] ---------------------------------------------------
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py312"
 fix = true
 
@@ -492,7 +523,7 @@ unfixable = []
 #ignore-init-module-imports = false
 typing-modules = ["pandas._typing"]
 exclude = [
-  "notebooks/@databricks/*",
+  "notebooks/samples/Attic/*",
   "doc/*",
   ".eggs/*.py",
   "home/*",
@@ -530,7 +561,7 @@ select = [
   "SLOT",
   "RSE",
 ]
-ignore = []
+ignore = ["C408", "PLR0913", "PLR0917"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -543,7 +574,8 @@ combine-as-imports = true
 [tool.ruff.format]
 docstring-code-format = true
 exclude = [
-  "notebooks/@databricks/*",
+  "notebooks/samples/Attic/*",
+  "notebooks/*",
   "doc/*",
   ".eggs/*.py",
   "home/*",
@@ -552,6 +584,11 @@ exclude = [
   ".venv/*",
   ".agents/*",
 ]
+
+# --- [jupytext] ------------------------------------------------
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
 
 # }}} //
 # {{{ ////////////////////////////////////////////////////////////////

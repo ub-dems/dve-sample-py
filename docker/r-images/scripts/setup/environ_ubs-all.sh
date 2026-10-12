@@ -102,7 +102,7 @@ Usage: $XS <command> [args] ...
 where command is:
 
   --status: dump virtuaenv info
-  --upgrade: force poetry lock/renv snapshot
+  --upgrade: force uv lock/renv snapshot
   --help: 
 
 EOF
@@ -206,6 +206,18 @@ dump_extras_status() {
 # setup extra languge and tools: ${args}
 #
 
+- julia:
+   environ:
+    JULIA_ROOT: "${JULIA_ROOT}"
+    JULIA_HOME: "${JULIA_HOME}"
+   binaries:
+    julia:
+     path: |
+$(which julia  2>/dev/null || echo "NOCARGO" | sk)
+     vers: |
+$(julia --version || echo "NOCARGO" | sk)
+
+
 - rust:
    environ:
     CARGO_HOME: "${CARGO_HOME}"
@@ -266,20 +278,23 @@ dump_venv_status() {
 # setup python venv status: ${args}
 #
 
+#    poetry-venv: |
+# $(poetry env info | sl)
+
 - virtual-env:
    paths:
     path: |
 $(echo "${PATH}" | tr ':' '\n' | sl)
     library_path: |
 $(echo "${LD_LIBRARY_PATH}" | tr ':' '\n' | sl)
-    python: "$(which python || )"
-    python-version: "$(python --version || echo "NOPYTHON")"
-    poetry: "$(which poetry)"
-    poetry-version: "$(poetry --version)"
-    jupyter: "$(which jupyter)"
-    jupyter-version: "$(jupyter --version)"
-   poetry-venv: |
-$(poetry env info | sl)
+    python: "$(which python || echo NOPYTHON)"
+    python-version: "$(python --version || echo NOPYTHON)"
+    uv: "$(which uv || echo NOUV)"
+    uv-version: "$(uv --version || echo NOUV)"
+    poetry: "$(which poetry || echo NOPOETRY)"
+    poetry-version: "$(poetry --version || echo NOPOETRY)"
+    jupyter: "$(which jupyter || echo NOJUPYTER)"
+    jupyter-version: "$(jupyter --version || echo NOJUPYTER)"
 
 - r-bindings:
    config:
@@ -297,9 +312,9 @@ $(jupyter kernelspec list || echo "NOJUPYTER" | sl)
 
 - python-deps
    list: |
-$(poetry show | sl)
+$((uv pip list || poetry show) | sl)
    project: |
-$(ls -l pyproject.toml poetry.lock | sl)
+$(ls -l pyproject.toml poetry.lock uv.lock | sl)
  
 
 # }}} -----
@@ -687,7 +702,7 @@ do_us_bash() {
     
     log ">(do_us_bash):" "us - bash config, ..."
 
-    bash_files=(".bash_aliases" ".aliases")
+    bash_files=(".bashrc" ".bash_aliases" ".aliases")
 
     for bash_file in "${bash_files[@]}"; do
         [ -e ~/$bash_file ] || { \
@@ -709,7 +724,7 @@ do_us_zsh() {
     [ -e ~/.oh-my-zsh ] || { \
         [ -e ~/.import/.oh-my-zsh ] && \
             cp -pv  ~/.import/.zsetup ~/.zsetup && \
-            zsh ~/.zsetup < /dev/null
+            (zsh ~/.zsetup < /dev/null 2>&1 | tee /dev/null)
         }
         
 
@@ -739,7 +754,7 @@ do_us_emacs() {
             
     [ -e ~/.emacs ] || { \
         [ -e ~/.import/.emacs ] && \
-            cp -pv  ~/.import/.emacs ~/.emacs
+            cp -p  ~/.import/.emacs ~/.emacs
         }
             
     [ -e ~/.emacs-start.el ]  || { \
@@ -749,7 +764,7 @@ do_us_emacs() {
             
     [ -d ~/.emacs.d ] || { \
         [ -d ~/.import/.emacs.d ] && \
-            cp -rpv ~/.import/.emacs.d ~/.emacs.d 
+            cp -rp ~/.import/.emacs.d ~/.emacs.d 
         }
 
     log "<(do_us_emacs):"  "us - emacs config, done"
