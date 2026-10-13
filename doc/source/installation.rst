@@ -12,7 +12,7 @@ To install My Python package, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install dve_sample_py
+    $ pip install dvepy
 
 This is the preferred method to install My Python package, as it will always install the most recent stable release.
 

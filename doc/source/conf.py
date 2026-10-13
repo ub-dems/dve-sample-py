@@ -6,7 +6,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "dve_sample_py"
+project = "dvepy"
 project_copyright = "2021, Datalab DEMS <datalab@campus.unimib.it>"
 author = "Datalab DEMS <datalab@campus.unimib.it>"
 

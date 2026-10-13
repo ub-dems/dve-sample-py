@@ -20,7 +20,7 @@ build-backend = "hatchling.build"
 # Project metadata (PEP 621)
 # ============================================================
 [project]
-name = "dve_sample_py"
+name = "dvepy"
 version = "1.0.0"
 description = "TODO(title): TITLE OF THE RESEARCH WORK"
 readme = "README.md"

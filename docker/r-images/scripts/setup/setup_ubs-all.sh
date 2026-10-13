@@ -838,7 +838,7 @@ do_ev_dotenv() {
     elif [ -f "${X_ENV_FILE}" ]; then
         info "-(do_ev_dotenv):" "ev - X_ENV_FILE=${X_ENV_FILE} found, skip"
     else
-        cat "${}" | grep '^[a-zA-Z0-9_]' > "${X_ENV_STRICT}"
+        cat "${X_ENV_DEFAULT}" | grep '^[a-zA-Z0-9_]' > "${X_ENV_STRICT}"
         cp -v "${X_ENV_STRICT}" "${X_ENV_FILE}"
         ls -l "${X_ENV_FILE}" "${X_ENV_STRICT}" "${X_ENV_DEFAULT}"
         info "-(do_ev_dotenv):" "ev - UV_ENV_FILE=${UV_ENV_FILE} created from ${X_ENV_DEFAULT}."

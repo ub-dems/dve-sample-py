@@ -1,4 +1,4 @@
-Welcome to dve_sample_py package's documentation!
+Welcome to dvepy package's documentation!
 ===========================================================
 
 A python template project with docker api service and jupyter support

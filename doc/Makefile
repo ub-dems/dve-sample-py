@@ -3,7 +3,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
-SPHINXPROJ    = dve_sample_py
+SPHINXPROJ    = dvepy
 SOURCEDIR     = source
 BUILDDIR      = _build
 

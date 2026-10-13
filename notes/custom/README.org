@@ -570,7 +570,8 @@ EOF
 CUST_S_PROJECT_NAME='dve-sample-r'
 # ---(package)---
 CUST_S_R_PACKAGE_NAME='dvesimpler'
-CUST_S_PY_PACKAGE_NAME='dve_sample_r'
+CUST_S_PY_PACKAGE_NAME='dvepy'
+CUST_S_JULIA_PACKAGE_NAME='Dve'
 # ---(source repository)---
 CUST_S_REPO_PATH='ub-dems/ds-labs'
 CUST_S_CICD_PATH='ub-dems/vs-base'
@@ -617,7 +618,8 @@ EOF
 CUST_T_PROJECT_NAME='us-proto-r'
 # ---(package)---
 CUST_T_R_PACKAGE_NAME='USprotoR'
-CUST_T_PY_PACKAGE_NAME='us_proto_r'
+CUST_T_PY_PACKAGE_NAME='usppy'
+CUST_T_JULIA_PACKAGE_NAME='Usp'
 # ---(source repository)---
 CUST_T_REPO_PATH='ub-dems/cs-labs/user-dsuser'
 CUST_T_CICD_PATH="${CUST_T_REPO_PATH}"
@@ -698,6 +700,7 @@ fi
 [ -z "$CUST_S_PROJECT_NAME" ] && { echo "config error: CUST_S_PROJECT_NAME"; exit 1; }
 [ -z "$CUST_S_R_PACKAGE_NAME" ] && { echo "config error: CUST_S_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_PY_PACKAGE_NAME" ] && { echo "config error: CUST_S_PY_PACKAGE_NAME"; exit 1; }
+[ -z "$CUST_S_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_S_JULIA_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_REPO_PATH" ] && { echo "config error: CUST_S_REPO_PATH"; exit 1; }
 [ -z "$CUST_S_CICD_PATH" ] && { echo "config error: CUST_S_CICD_PATH"; exit 1; }
 [ -z "$CUST_S_REPO_HOST" ] && { echo "config error: CUST_S_REPO_HOST"; exit 1; }
@@ -723,6 +726,7 @@ fi
 [ -z "$CUST_T_PROJECT_NAME" ] && { echo "config error: CUST_T_PROJECT_NAME"; exit 1; }
 [ -z "$CUST_T_R_PACKAGE_NAME" ] && { echo "config error: CUST_T_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_PY_PACKAGE_NAME" ] && { echo "config error: CUST_T_PY_PACKAGE_NAME"; exit 1; }
+[ -z "$CUST_T_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_T_JULIA_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_REPO_PATH" ] && { echo "config error: CUST_T_REPO_PATH"; exit 1; }
 [ -z "$CUST_T_CICD_PATH" ] && { echo "config error: CUST_T_CICD_PATH"; exit 1; }
 [ -z "$CUST_T_REPO_HOST" ] && { echo "config error: CUST_T_REPO_HOST"; exit 1; }
@@ -765,11 +769,15 @@ echo "#:> (cust-rename)"
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_S_R_PACKAGE_NAME*" -o -name "$CUST_S_R_PROJECT_NAME*"
+     -name "$CUST_S_R_PACKAGE_NAME*"
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_S_PY_PACKAGE_NAME*" -o -name "$CUST_S_PY_PROJECT_NAME*"
+     -name "$CUST_S_PY_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_S_JULIA_PACKAGE_NAME*"
 echo "--------------------------------"
 echo ""
 #+END_SRC
@@ -779,12 +787,37 @@ echo ""
 [ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
 [ "${CUST_X_CUSTOMIZED}" = '0' ] || exit 1
 
-mv -v ./${CUST_S_R_PACKAGE_NAME}.Rproj ./${CUST_T_R_PACKAGE_NAME}.Rproj
-mv -v ./man/${CUST_S_R_PACKAGE_NAME}-package.Rd ./man/${CUST_T_R_PACKAGE_NAME}-package.Rd
-mv -v ./R/${CUST_S_R_PACKAGE_NAME}-package.r ./R/${CUST_T_R_PACKAGE_NAME}-package.r
+# ---(r)-----
 
-[ -f ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ] && \
-mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAGE_NAME}.h
+if [ "${CUST_S_R_PACKAGE_NAME}" != "${CUST_T_R_PACKAGE_NAME}" ]; then
+
+    mv -v ./${CUST_S_R_PACKAGE_NAME}.Rproj ./${CUST_T_R_PACKAGE_NAME}.Rproj
+    mv -v ./man/${CUST_S_R_PACKAGE_NAME}-package.Rd ./man/${CUST_T_R_PACKAGE_NAME}-package.Rd
+    mv -v ./R/${CUST_S_R_PACKAGE_NAME}-package.r ./R/${CUST_T_R_PACKAGE_NAME}-package.r
+
+    [ -f ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ] && \
+        mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAGE_NAME}.h
+
+fi    
+
+
+# ---(python)-----
+
+if [ "${CUST_S_PY_PACKAGE_NAME}" != "${CUST_T_PY_PACKAGE_NAME}" ]; then
+
+    echo "py noop: mv ${CUST_S_PY_PACKAGE_NAME} -> ${CUST_T_PY_PACKAGE_NAME}"
+
+fi    
+
+# ---(julia)-----
+
+if [ "${CUST_S_JULIA_PACKAGE_NAME}" != "${CUST_T_JULIA_PACKAGE_NAME}" ]; then
+    
+    [ -f ./src/${CUST_S_JULIA_PACKAGE_NAME}.jl ] && \
+        mv -v ./src/${CUST_S_JULIA_PACKAGE_NAME}.jl ./src/${CUST_T_R_PACKAGE_NAME}.jl
+
+fi    
+
 
 
 #+END_SRC
@@ -795,7 +828,15 @@ mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAG
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_T_R_PACKAGE_NAME*" -o -name "$CUST_T_PROJECT_NAME*"
+     -name "$CUST_T_R_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_T_PY_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_T_JULIA_PACKAGE_NAME*"
 echo "--------------------------------"
 echo ""
 echo "#:< (cust-rename)"
@@ -1359,6 +1400,51 @@ echo ""
 
 echo "#:< (project-desc/PY)"
 #+END_SRC
+
+
+*** Project Description/JULIA
+
+#+NAME: cust-pinfo-julia-vers-pre
+#+BEGIN_SRC bash
+echo "#:> (project-desc/JULIA)"
+
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+
+JULIA_MODULE="./src/${CUST_T_R_PACKAGE_NAME}.jl"
+
+echo "--- MODULE ----------------"
+[ -f "$JULIA_MODULE" ] && \
+awk '/^"""/,/^module/' "$JULIA_MODULE"
+echo "--------------------------------"
+echo ""
+
+#+END_SRC
+
+#+NAME: cust-pinfo-julia
+#+BEGIN_SRC bash :results output drawer replace
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+[ "${CUST_X_CUSTOMIZED}" = '0' ] || exit 1
+
+perl -pi -e  "s{(given\s*=\s*)\"\Q$CUST_S_INFO_AUTH_NAME\E\"}{\1\"$CUST_T_INFO_AUTH_NAME\"}" ./DESCRIPTION
+perl -pi -e  "s{(family\s*=\s*)\"\Q$CUST_S_INFO_AUTH_SURNAME\E\"}{\1\"$CUST_T_INFO_AUTH_SURNAME\"}" ./DESCRIPTION
+perl -pi -e  's{(email\s*=\s*)\"\Q$ENV{CUST_S_INFO_AUTH_EMAIL}\E\"}{\1\"$ENV{CUST_T_INFO_AUTH_EMAIL}\"}' ./DESCRIPTION
+perl -pi -e  "s{(Title\s*:\s*)\Q$CUST_S_INFO_TITLE\E}{\1$CUST_T_INFO_TITLE}" ./DESCRIPTION
+perl -pi -e  "s{(Description\s*:\s*)\Q$CUST_S_INFO_DESC\E}{\1$CUST_T_INFO_DESC}" ./DESCRIPTION
+
+#+END_SRC
+
+#+NAME: cust-pinfo-julia-post
+#+BEGIN_SRC bash
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+echo "--- DESCRIPTION ----------------"
+awk '/^Type:/,/^Imports:/' ./DESCRIPTION
+echo "--------------------------------"
+echo ""
+
+echo "#:< (project-desc/R)"
+#+END_SRC
+
+
 
 *** Project Description/MD
 
