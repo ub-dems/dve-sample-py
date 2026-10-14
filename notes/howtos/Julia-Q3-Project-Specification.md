@@ -51,7 +51,7 @@ doctype: md-report
 # TOC
 
 1. [Q:1 - Julia integration in a hybrid R + Python research project](#q1)
-   - see: [TODO:(a1-ref-claude) (Claude)](#a1-claude)
+   - see: [Julia for the Dve research repository (Claude)](#a1-claude)
    - see: [Julia Repository Layout (Gemini)](#a1-gemini)
    - see: [Julia integration tutorial for a hybrid research repository (ChatGPT)](#a1-chatgpt)
    - see: [Julia integration tutorial (DeepSeek)](#a1-deepseek)
@@ -1304,7 +1304,7 @@ Run inside the container unless stated otherwise.
 
 [^](#toc) **_Julia Repository Layout_**
 
-* see: [gemini](https://share.gemini.google/cwwSLSWSYj8A)
+- see: [Gemini](https://share.gemini.google/cwwSLSWSYj8A)
 
 ## 1. Julia Project Skeleton
 

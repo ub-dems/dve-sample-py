@@ -30,12 +30,13 @@
 ^\.dockerignore.*$
 ^dist$
 ^docs$
-^src/Dve.jl$
+^src/.*\.jl$
 ^\.editorconfig$
 ^\.env$
 ^\.env.*$
 ^env-args.txt$
 ^etc$
+^ext$
 ^\.github$
 ^\.github/workflows/pkgdown\.yaml$
 ^\.github/workflows/pr-commands\.yaml$
@@ -106,6 +107,7 @@
 ^_targets$
 ^_targets\.R$
 ^temp$
+^test$
 ^todo.org$
 ^travis$
 ^travis/check_format\.sh$
