@@ -251,9 +251,1054 @@ an "Additional Notes" section.
 
 # A:1 (Claude)
 
-[^](#toc) **_TODO:(a1-ref-claude)_**
+[^](#toc) **_Julia for the Dve research repository_**
 
-TODO:(a1-claude) ...
+- see: [Claude](https://claude.ai/share/0dab7154-240b-4da6-b45c-2583c60cd0aa)
+
+
+## Repository tree and assumptions
+
+Assumed Julia version: 1.13.1 (`julia = "1.13"` in `[compat]`). The 1.13 release blog is dated 10 Sep 2026.[^ac-julia113] Whether the 1.13.1 patch is already tagged is `[unverified]`; install with `juliaup add 1.13`.[^ac-juliaup]
+
+Proposed tree. Entries marked `(new)` are my additions, and `(moved)` marks a deviation from your layout, justified below.
+
+```text
+<project-root>
+  pyproject.toml
+  DESCRIPTION
+  uv.lock
+  renv.lock
+  Project.toml                      # Julia package Dve + [workspace]
+  Manifest.toml                     # one shared Julia lockfile, committed
+  .Rbuildignore                     # extended, see below
+  R/                                # dvesimpler
+  inst/include, inst/python/dve/__init__.py
+  src/Makevars, src/*.cpp           # Rcpp
+  src/Dve.jl, src/*.jl              # Julia sources (ignored by R)
+  test/runtests.jl                  # (moved) from tests/*.jl
+  test/Project.toml                 # (new) test environment, workspace member
+  scripts/hello.jl                  # (new) executable CLI, outside the package
+  scripts/Project.toml              # (new) script environment, workspace member
+  examples/*.jl, *.py, *.R          # (new) integration examples
+  examples/Project.toml             # (new) workspace member
+  tests/pytest, tests/testthat      # unchanged
+```
+
+### Deviations from the assumed layout
+
+Two requirements rest on a mistaken assumption.
+
+- `tests/*.jl` does not work with `Pkg.test()`.
+  - `Pkg.test` hard-codes `test/runtests.jl`, and no `Project.toml` key changes that.[^ac-pkg-creating]
+  - Keep R's `tests/` and add a Julia `test/` directory (no `s`).
+  - Running `julia tests/x.jl` by hand loses the test sandbox, `[extras]`/`[targets]` handling and the `Pkg.test` entry point.
+- `src/*.jl` inside R's `src/` is fine for R, as long as the files stay out of the tarball.
+  - R compiles only known source extensions, and `.Rbuildignore` entries are regexes matched against paths relative to the root.[^ac-rexts]
+  - CRAN compliance does not require removing the files. It requires that the R package never fails when Julia is missing (see the pitfalls).
+
+File: `.Rbuildignore` (append these lines)
+
+```text
+^Project\.toml$
+^Manifest(-v[0-9.]+)?\.toml$
+^src/.*\.jl$
+^test$
+^scripts$
+^examples$
+^\.julia
+```
+
+## 1. Julia project skeleton
+
+### Package and project files
+
+Python/R analogy: `Project.toml` is `pyproject.toml`/`DESCRIPTION`, `Manifest.toml` is `uv.lock`/`renv.lock`. The module name must equal `name`, and the entry file must be `src/<name>.jl`; there is no key to move it.
+
+File: `Project.toml`
+
+```toml
+name = "Dve"
+uuid = "5b3e2a8c-91d4-4f06-8a7e-2c1d9e6f4b30"
+version = "0.1.0"
+
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
+[compat]
+DataFrames = "1"
+Statistics = "1"
+julia = "1.13"
+
+[workspace]
+projects = ["test", "scripts", "examples"]
+```
+
+The UUID above is arbitrary but valid. Generate your own with `using UUIDs; uuid4()`.
+
+File: `src/Dve.jl`
+
+```julia
+module Dve
+
+using DataFrames: DataFrame
+using Statistics: mean
+
+export hello_world, scaled_mean, add_total
+
+"""
+    hello_world(salutation, who) -> String
+
+Return a formatted greeting, e.g. `hello_world("Hello", "Julia") == "Hello, Julia!"`.
+"""
+function hello_world(salutation::AbstractString, who::AbstractString)
+    isempty(strip(salutation)) && throw(ArgumentError("salutation must not be empty"))
+    return string(salutation, ", ", who, "!")
+end
+
+"Mean of `v` multiplied by `factor` (primitive/vector example for the bridges)."
+scaled_mean(v::AbstractVector{<:Real}, factor::Real = 1) = mean(v) * factor
+
+"""
+    add_total(tbl) -> DataFrame
+
+Accept any Tables.jl-compatible table with numeric columns `x` and `y`,
+return a new `DataFrame` with an extra column `total = x + y`.
+"""
+function add_total(tbl)
+    df = DataFrame(tbl)          # copies columns by default
+    df.total = df.x .+ df.y
+    return df
+end
+
+end # module
+```
+
+Multiple dispatch replaces Python's `isinstance` branching and R's S3/S4 dispatch. The `::AbstractString` annotation is a dispatch constraint, not a declaration.
+
+### Unit test
+
+File: `test/Project.toml`
+
+```toml
+[deps]
+Dve = "5b3e2a8c-91d4-4f06-8a7e-2c1d9e6f4b30"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+```
+
+File: `test/runtests.jl`
+
+```julia
+using Test
+using Dve
+
+@testset "hello_world" begin
+    @test hello_world("Hello", "Julia") == "Hello, Julia!"
+    @test hello_world("Ciao", "mondo") == "Ciao, mondo!"
+    @test_throws ArgumentError hello_world("", "x")
+end
+```
+
+Shell, working directory `<project-root>`. The first command resolves and installs everything on a clean checkout:
+
+```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. -e 'using Pkg; Pkg.test()'
+```
+
+Expected output ends with a summary like the following (timing differs):
+
+```text
+Test Summary: | Pass  Total  Time
+hello_world   |    3      3  0.1s
+     Testing Dve tests passed
+```
+
+### Executable script outside the package
+
+The script lives in `scripts/`, a workspace member with its own dependency (`ArgParse`, the closest match to Python's `argparse`).
+
+File: `scripts/Project.toml`
+
+```toml
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+Dve = "5b3e2a8c-91d4-4f06-8a7e-2c1d9e6f4b30"
+
+[compat]
+ArgParse = "1"
+```
+
+File: `scripts/hello.jl`
+
+```julia
+#!/usr/bin/env julia
+# Activate the environment that lives next to this file, independent of the
+# caller's working directory. A plain `julia` shebang has no --project flag.
+import Pkg
+Pkg.activate(@__DIR__; io = devnull)
+
+using ArgParse
+using Dve
+
+function parse_cli(args)
+    s = ArgParseSettings(description = "Print a greeting built by Dve.hello_world.")
+    @add_arg_table! s begin
+        "--salutation", "-s"
+            help = "greeting word"
+            default = "Hello"
+        "who"
+            help = "who to greet"
+            required = true
+    end
+    return parse_args(args, s)
+end
+
+function main(args = ARGS)
+    opts = parse_cli(args)
+    println(hello_world(opts["salutation"], opts["who"]))
+    return 0
+end
+
+abspath(PROGRAM_FILE) == @__FILE__ && exit(main())
+```
+
+How the shebang finds the environment:
+
+- `#!/usr/bin/env julia` only locates the interpreter.
+- `Pkg.activate(@__DIR__)` (the `scripts/` folder, a workspace member) then makes `using Dve` resolve through the shared root `Manifest.toml`.
+- A shebang with `-S julia --project=@script` may also work in recent versions. I could not verify it, so it is `[unverified]`.
+- Alternatively, `#!/usr/bin/env -S julia --project=.` depends on the caller's current directory, which is fragile.
+
+Shell, working directory `<project-root>`:
+
+```bash
+chmod +x scripts/hello.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+./scripts/hello.jl --salutation Ciao mondo
+./scripts/hello.jl --help
+```
+
+Expected output: `Ciao, mondo!`. The help text is ArgParse's usage line (approximately `usage: hello.jl [-s SALUTATION] [-h] who`) followed by the description and the argument list.
+
+### Jupyter kernel bound to the project
+
+Install IJulia in the global environment, not in `Project.toml`. It is tooling, and the kernel finds it through the load-path stack (`@` → `@v1.13` → `@stdlib`).[^ac-ijulia] The kernel is bound to your project by the `--project=@.` option, which makes Julia search upward from the kernel's working directory (the notebook folder) for a `Project.toml`.
+
+Shell, working directory `<project-root>`:
+
+```bash
+julia -e 'using Pkg; Pkg.add("IJulia")'
+julia -e 'using IJulia; installkernel("Julia Dve", "--project=@."; specname = "julia-dve")'
+uv run jupyter kernelspec list
+```
+
+- Expected: a `julia-dve…` kernelspec appears in the list.
+- IJulia chooses the Jupyter installation through the `JUPYTER` environment variable. To register the kernel with the uv-managed Jupyter, run the second command as `JUPYTER="$(uv run which jupyter)" julia -e '…'` (`[unverified]`, see IJulia's README).
+- For Jupytext, a pairing such as `jupytext --set-kernel julia-dve notebook.md` should then work.
+
+### LSP support
+
+#### How the three packages relate
+
+They are components of one server, not alternatives.
+
+- `LanguageServer.jl` is the process editors talk to. It implements the LSP wire protocol.[^ac-lsjl]
+- `JuliaWorkspaces.jl` is the analysis engine.[^ac-jws] Its README states the target design: `LanguageServer.jl` keeps only the protocol layer and all functionality lives in `JuliaWorkspaces`.
+- `SymbolServer.jl` indexed the symbols of installed packages without loading them, and `StaticLint.jl` provided scope and error analysis.
+  - Verified: both GitHub repositories are archived (13 Jul 2026), with banners saying their functionality moved into `JuliaWorkspaces.jl`.[^ac-symsrv][^ac-staticlint]
+  - They are now legacy components, not alternatives you choose between.
+- Breaking change: a downstream project reports that `LanguageServer.jl` 6.0 (registered 2026-09-12) removed the `depot_path` argument of `runserver()`. Clients written against the 5.x call crash at startup.[^ac-ls6]
+  - The same report mentions a SymbolServer patch needed for Julia 1.13 on the 5.x line.
+  - I verified this only through that one report, so treat the details as `[unverified]`.
+
+#### VS Code
+
+Install the "Julia" extension. It manages its own language-server environment, so you do not install `LanguageServer` yourself.
+
+File: `.vscode/settings.json`
+
+```json
+{
+  "julia.environmentPath": "${workspaceFolder}"
+}
+```
+
+Whether the extension picks up workspace members such as `test/` automatically is `[unverified]`.
+
+#### Emacs: comparison of clients
+
+| Criterion | `eglot` + `eglot-jl` | `lsp-mode` + `lsp-julia` |
+| --- | --- | --- |
+| Purpose | Thin glue starting `LanguageServer.jl` under Emacs's built-in LSP client | Same server under the larger `lsp-mode` UI (sideline, lenses, tree views) |
+| Maintenance | `[unverified]`, check the repository's last commits[^ac-eglotjl] | `[unverified]`, check the repository's last commits[^ac-lspjulia] |
+| Setup effort | Low: `eglot` is built into Emacs 29+, and `eglot-jl` bundles its own server environment | Medium: needs `lsp-mode`, and you point it to an environment holding `LanguageServer` |
+| Prefer when | You want minimal configuration | You already use `lsp-mode` for other languages |
+
+Both bundle or point to a pinned `LanguageServer` environment, so the 5.x/6.x break above applies to their defaults. If the server crashes at startup, pin `LanguageServer` to 5.x in that environment, or update the client.
+
+File: `~/.emacs.d/init.el` (eglot variant, my recommendation)
+
+```elisp
+(use-package julia-mode
+  :ensure t
+  :mode "\\.jl\\'")
+
+(use-package eglot-jl
+  :ensure t
+  :after (eglot julia-mode)
+  :hook (julia-mode . eglot-ensure)
+  :init
+  ;; use the environment bundled with eglot-jl
+  (setq eglot-jl-language-server-project eglot-jl-base)
+  ;; first start precompiles and indexes; the default 30 s is too short
+  (setq eglot-connect-timeout 300)
+  :config
+  (eglot-jl-init))
+```
+
+File: `~/.emacs.d/init.el` (lsp-mode variant)
+
+```elisp
+(use-package lsp-julia
+  :ensure t
+  :after lsp-mode
+  :hook (julia-mode . lsp-deferred)
+  :init
+  ;; own environment holding LanguageServer, instead of the bundled one
+  (setq lsp-julia-package-dir nil
+        lsp-julia-default-environment "~/.julia/environments/lsp"))
+```
+
+Shell, working directory anywhere (creates the `lsp` environment used above):
+
+```bash
+julia --project="$HOME/.julia/environments/lsp" -e 'using Pkg; Pkg.add("LanguageServer")'
+```
+
+Keep editor tooling in named global environments like this. It stays out of `Project.toml` and out of the `uv`/`renv` lockfiles.
+
+## 2. Julia project structure
+
+### Dependency management, UUIDs, compat, registries
+
+Is `Pkg.add` enough? For adding a dependency, yes.
+
+- `Pkg.add("X")` writes `X = "<uuid>"` into `[deps]`, resolves versions and records them in `Manifest.toml`.
+- The UUID is the package's identity, not its name. It is why two packages with the same name can coexist.
+- `[compat]` is not written by `Pkg.add`. Add it with `pkg> compat X 1` (or `Pkg.compat`) or by hand. It is required for registration and good practice otherwise.[^ac-pkg-toml]
+- `Pkg.develop(path = ".")` or `Pkg.develop("X")` tracks a local checkout instead of a registered version. Since 1.11, a `[sources]` table can also express this portably in `Project.toml` (see the Pkg docs).
+- Registries are Git repositories mapping names to UUIDs and versions. `General` is the default, and private registries are added with `Pkg.Registry.add(url)`.
+- Commit `Manifest.toml` for this repository: it is an application-style research repo, like committing `uv.lock` and `renv.lock`. Versioned `Manifest-v1.13.toml` files take precedence when present.
+
+| Python (uv) | R | Julia |
+| --- | --- | --- |
+| `pyproject.toml` | `DESCRIPTION` | `Project.toml` |
+| `uv.lock` | `renv.lock` | `Manifest.toml` |
+| `uv add x` | `renv::install("x")` | `Pkg.add("x")` |
+| `uv sync` | `renv::restore()` | `Pkg.instantiate()` |
+| `uv run cmd` | `Rscript` | `julia --project=. script.jl` |
+| `pip install -e .` | `devtools::load_all()` | `Pkg.develop(path = ".")` |
+| dependency groups, extras | `Suggests` | test environment or workspace member |
+| `[tool.uv.workspace]` | (none) | `[workspace]` |
+| `pytest` / `testthat` | `devtools::test()` | `Pkg.test()` |
+
+### Dev, test and LSP dependencies
+
+| Option | Purpose | Maintenance status | Setup effort | Prefer when |
+| --- | --- | --- | --- | --- |
+| `[extras]` + `[targets]` | Test-only deps inside the main `Project.toml` | Legacy, still supported | Lowest | You must support Julia 1.10 or older |
+| `test/Project.toml` alone | Separate test environment | Stable, long-standing | Low | Julia 1.11 or older, or you want independent manifests |
+| `[workspace]` with `test/Project.toml` | Same, but one shared manifest and `--project=test` works | New in 1.12, adopted by major packages[^ac-ws-discourse] | Low | Julia 1.12+, no legacy constraint |
+| Named global environments (`@lsp`, `@v1.13`) | Editor tooling, IJulia, Revise | Stable | Lowest | Tools that must not leak into project files |
+
+Recommendation: a workspace with `test/`, `scripts/` and `examples/` as members, because the target is 1.13 with no legacy constraint. LSP, IJulia and similar tooling live in global environments.
+
+### What is configured and what is convention
+
+| Item | Mechanism |
+| --- | --- |
+| Entry file `src/Dve.jl` | Convention enforced by Pkg: `name` plus `src/<name>.jl` (an `entryfile` key may exist in newer Pkg, `[unverified]`) |
+| `test/runtests.jl` | Convention hard-coded in `Pkg.test` |
+| `test/Project.toml` | Convention, auto-detected by Pkg |
+| `scripts/`, `examples/` | Free naming. They are known to Pkg only if listed in `[workspace] projects` |
+| `[workspace] projects` | The only configured folder list in `Project.toml` |
+
+### Workspaces
+
+There are three unrelated meanings of "workspace".
+
+- Pkg workspace (Julia 1.12+): a set of projects sharing one `Manifest.toml`, declared by `[workspace] projects = [...]` in the root `Project.toml`. Each folder needs its own `Project.toml`.[^ac-pkg-toml]
+- `JuliaWorkspaces.jl`: the language-server engine, an in-memory model of folders, projects and files for editors. The name is a collision only. It does not read `[workspace]` as an instruction to you.
+- Editor workspace: a VS Code folder or multi-root workspace, or an Emacs `project.el` root.
+
+Use cases: tests, docs, benchmarks and scripts that need extra dependencies without polluting the main project.
+
+Minimal example, already used above:
+
+```text
+Project.toml      [workspace] projects = ["test", "scripts", "examples"]
+test/Project.toml
+scripts/Project.toml
+examples/Project.toml
+Manifest.toml     (single, at the root)
+```
+
+Shell, working directory `<project-root>`:
+
+```bash
+julia --project=scripts -e 'using Dve, ArgParse; println(hello_world("Hi", "ws"))'
+```
+
+Expected output: `Hi, ws!`. It works because the shared manifest knows `Dve` and `ArgParse`, even though they were declared in different `Project.toml` files. Pkg discourse threads state that a member needs the parent package in its own `[deps]` but no `[sources]` entry (`[unverified]` against the official docs).
+
+## 3. Language integration examples
+
+### Choice of integration packages
+
+| Direction | Choice | Purpose | Maintenance | Setup effort | Prefer when |
+| --- | --- | --- | --- | --- | --- |
+| R to Julia | `JuliaConnectoR` (CRAN) | Runs Julia as a separate process, talks over TCP[^ac-juliaconnector] | On CRAN, recent releases | Low: `juliaup` installs are found automatically | Packaging for CRAN, process isolation, no `libjulia` embedding |
+| R to Julia | `JuliaCall` (CRAN/GitHub) | Embeds Julia in the R process, uses `RCall.jl` for conversions[^ac-juliacall-r] | `[unverified]` | Medium: `julia_setup()`, `JULIA_HOME` | You need low-latency in-process calls and accept embedding quirks |
+| Julia to Python | `PythonCall.jl` | Calls Python from Julia[^ac-pythoncall] | Active | Medium | Default choice. Prefer it over `PyCall.jl` for its `CondaPkg`-free mode and clearer conversion rules |
+| Python to Julia | `juliacall` (PyPI, part of the same project) | Calls Julia from Python, managed by `juliapkg`[^ac-juliacall-py][^ac-juliapkg] | Active | Medium | Same family as `PythonCall.jl`, so one conversion model |
+
+Choice for R: `JuliaConnectoR`, since your R package must stay CRAN-compliant. Process isolation avoids the signal-handler and `libjulia` conflicts of embedding, and the package declares no system requirement.
+
+### Shared environment rules
+
+- Python (uv): Julia must use the `uv` virtual environment and must not create a second Python.
+  - `uv run` sets `VIRTUAL_ENV` and puts `.venv/bin` on `PATH`.
+  - For `PythonCall`, disable its Conda management and pass the interpreter: `JULIA_CONDAPKG_BACKEND=Null` and `JULIA_PYTHONCALL_EXE=<path to .venv python>`.[^ac-condapkg]
+- R (renv): `JuliaConnectoR` is installed with `renv::install()`, and Julia is a system tool (`juliaup`), not duplicated per language.
+- Julia from Python: `juliacall` looks for a Julia on `PATH` or installs its own via `juliaup`, into the venv.
+  - To reuse your Julia, set `PYTHON_JULIAPKG_EXE` to it.
+  - To reuse your Julia project instead of a private one, set `PYTHON_JULIAPKG_PROJECT=examples`.
+  - Caveat: `juliapkg` may add `PythonCall` to that project, and its behaviour with workspace members is `[unverified]`. Hence `examples/Project.toml` already lists `PythonCall`.
+
+First-run bootstrap, shell, working directory `<project-root>`:
+
+```bash
+juliaup add 1.13                                          # once per machine
+uv sync                                                   # Python env, includes juliacall, pandas, numpy
+julia --project=. -e 'using Pkg; Pkg.instantiate()'       # Julia env, all workspace members
+Rscript -e 'renv::restore()'                              # R env, includes JuliaConnectoR
+```
+
+### Project package `dvepy`
+
+File: `inst/python/dve/__init__.py`
+
+```python
+def greet(who: str) -> str:
+    return f"Hello, {who}!"
+
+
+def add_double(df):
+    out = df.copy()
+    out["double_x"] = out["x"] * 2
+    return out
+```
+
+This assumes `pyproject.toml` already exposes `inst/python/dve` as the importable package `dve`. I did not see your `pyproject.toml`, so check that `uv run python -c "import dve"` works.
+
+### 3.1 R to Julia
+
+File: `examples/Project.toml`
+
+```toml
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dve = "5b3e2a8c-91d4-4f06-8a7e-2c1d9e6f4b30"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
+
+[compat]
+DataFrames = "1"
+PythonCall = "0.9"
+```
+
+File: `examples/r_to_julia.R`
+
+```r
+library(JuliaConnectoR)
+
+# Select the Julia environment from plain Julia code (works without extra options).
+juliaEval('import Pkg; Pkg.activate("examples"; io = devnull)')
+
+Dve <- juliaImport("Dve")
+
+# Primitive types
+print(Dve$hello_world("Hello", "R"))        # "Hello, R!"
+print(Dve$scaled_mean(c(1, 2, 3), 2))       # 4
+
+# Complex type: data.frame in, data.frame out
+df  <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
+res <- Dve$add_total(df)
+print(as.data.frame(res))
+```
+
+Shell, working directory `<project-root>`:
+
+```bash
+Rscript examples/r_to_julia.R
+```
+
+Expected output:
+
+```text
+[1] "Hello, R!"
+[1] 4
+  x y total
+1 1 4     5
+2 2 5     7
+3 3 6     9
+```
+
+How it works:
+
+- R objects are serialized and sent over a local TCP connection to a Julia server process.
+- An R `data.frame` becomes an object implementing the Tables.jl interface. `DataFrame(tbl)` inside `add_total` builds a `DataFrame` from it.[^ac-tables]
+- The returned `DataFrame` stays in Julia as a proxy. `as.data.frame` pulls it back, which is a copy.
+- Everything is copied: the serialization boundary means there is no zero-copy path.
+- Details of scalar-versus-vector translation (length-1 R vectors become scalars) are `[unverified]`. See the package's translation table.
+- Which Julia binary and project are used is decided by `PATH` (`juliaup`) and the `Pkg.activate` call above. The `JULIA_PROJECT` environment variable may also be honoured, `[unverified]`.
+
+### 3.2 Julia to Python
+
+File: `examples/julia_to_python.jl`
+
+```julia
+using PythonCall
+using DataFrames
+using Dve
+
+# 1. Primitive types, third-party package
+np = pyimport("numpy")
+s = pyconvert(Float64, np.sqrt(2.0))                  # Py -> Float64 (copy of a scalar)
+println(s)
+
+# Array: explicit copy vs zero-copy wrapper
+x = np.linspace(0, 1, 5)
+x_copy = pyconvert(Vector{Float64}, x)                # copy
+x_view = PyArray(x)                                   # zero-copy view, shares memory
+println(x_copy)
+
+# 2. Project package dvepy (module "dve")
+dve = pyimport("dve")
+println(pyconvert(String, dve.greet("Julia")))
+
+# 3. DataFrame -> pandas -> dvepy -> back to DataFrame
+df = DataFrame(x = [1.0, 2.0, 3.0], y = [4.0, 5.0, 6.0])
+pdf = pytable(df)                                     # Julia table -> pandas
+res = dve.add_double(pdf)
+println(DataFrame(PyPandasDataFrame(res)))            # pandas -> Julia table
+```
+
+Shell, working directory `<project-root>`:
+
+```bash
+export JULIA_CONDAPKG_BACKEND=Null
+export JULIA_PYTHONCALL_EXE="$(uv run python -c 'import sys; print(sys.executable)')"
+uv run julia --project=examples examples/julia_to_python.jl
+```
+
+Expected output (abridged):
+
+```text
+1.4142135623730951
+[0.0, 0.25, 0.5, 0.75, 1.0]
+Hello, Julia!
+3×3 DataFrame
+ Row │ x        y        double_x
+     │ Float64  Float64  Float64
+─────┼───────────────────────────
+   1 │     1.0      4.0       2.0
+   2 │     2.0      5.0       4.0
+   3 │     3.0      6.0       6.0
+```
+
+Conversion and copy semantics:
+
+- `pyconvert(T, x)` copies into a Julia value.
+- `PyArray(x)` wraps a numpy array without copying, so both sides see the same memory.
+- `pytable` and `PyPandasDataFrame` are the Tables.jl bridges to and from pandas. I treat their exact names and copy behaviour as `[unverified]`; check the PythonCall docs. Assume `pytable` copies into numpy, and that `DataFrame(PyPandasDataFrame(...))` copies columns unless you pass `copycols = false`.
+- Fallback if those names differ: build the frame from a dict of columns. `pyimport("pandas").DataFrame(pydict(Dict("x" => df.x, "y" => df.y)))` goes to pandas, and `pyconvert(Vector{Float64}, pdf["x"].to_numpy())` per column comes back.
+
+### 3.3 Python to Julia
+
+File: `examples/python_to_julia.py`
+
+```python
+import numpy as np
+import pandas as pd
+from juliacall import Main as jl
+
+# Load Julia packages once; Dve comes from the project environment.
+jl.seval("using Statistics, DataFrames, PythonCall, Dve")
+
+# 1. Primitive types and the project package Dve
+print(jl.hello_world("Hello", "Python"))               # Julia String -> Python str
+
+# 2. Third-party Julia package (Statistics)
+arr = np.array([1.0, 2.0, 3.0, 4.0])
+print(jl.Statistics.mean(arr))                         # 2.5
+
+# 3. pandas DataFrame -> Julia DataFrame -> Dve -> pandas
+pdf = pd.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+jdf = jl.DataFrame(jl.PyPandasDataFrame(pdf))          # pandas -> Julia table
+res = jl.add_total(jdf)                                # Dve.add_total
+print(jl.pytable(res))                                 # Julia table -> pandas
+```
+
+Shell, working directory `<project-root>`:
+
+```bash
+export PYTHON_JULIAPKG_EXE="$(which julia)"
+export PYTHON_JULIAPKG_PROJECT="$PWD/examples"
+uv run python examples/python_to_julia.py
+```
+
+Expected output (abridged):
+
+```text
+Hello, Python!
+2.5
+     x    y  total
+0  1.0  4.0    5.0
+1  2.0  5.0    7.0
+2  3.0  6.0    9.0
+```
+
+How it works:
+
+- `from juliacall import Main as jl` starts Julia inside the Python process (embedded).
+- `juliapkg` resolves which Julia and which project to use. The two environment variables above reuse your Julia binary and your project, so nothing is installed twice. The variable names are `[unverified]`; see the `juliapkg` README.
+- Python arguments are converted before the call. A numpy array should reach Julia as a wrapped array without copying (`[unverified]`; check PythonCall's conversion rules page).
+- Julia results converted for Python come back as `str`/`float` for primitives. Julia arrays are exposed as wrapper objects, and `np.asarray(...)` on a dense `Array` can share memory.
+- DataFrame conversion copies columns in both directions, as in section 3.2.
+
+### Python/R to Julia equivalents
+
+| Task | Python | R | Julia |
+| --- | --- | --- | --- |
+| String formatting | `f"{a}, {b}!"` | `sprintf("%s, %s!", a, b)` | `string(a, ", ", b, "!")` |
+| Mean of a vector | `np.mean(v)` | `mean(v)` | `mean(v)` (from `Statistics`) |
+| Data frame | `pandas.DataFrame` | `data.frame` | `DataFrames.DataFrame` |
+| Add a column | `df["t"] = df.x + df.y` | `df$t <- df$x + df$y` | `df.t = df.x .+ df.y` |
+| Elementwise op | implicit (numpy) | implicit | explicit broadcast with `.` |
+| Run tests | `pytest` | `devtools::test()` | `Pkg.test()` |
+
+## Acceptance checklist
+
+Run from `<project-root>` on a clean checkout. Each item lists the expected result.
+
+- Julia installed: `julia --version` prints `julia version 1.13.x`.
+- Julia environment resolves: `julia --project=. -e 'using Pkg; Pkg.instantiate()'` finishes without errors and creates `Manifest.toml`.
+- Package loads: `julia --project=. -e 'using Dve; println(hello_world("Hello", "Julia"))'` prints `Hello, Julia!`.
+- Unit test: `julia --project=. -e 'using Pkg; Pkg.test()'` ends with `Dve tests passed`.
+- Script: `./scripts/hello.jl -s Ciao mondo` prints `Ciao, mondo!`, and `--help` prints usage.
+- Kernel: `uv run jupyter kernelspec list` shows `julia-dve…`, and a notebook with that kernel runs `using Dve` successfully.
+- R to Julia: `Rscript examples/r_to_julia.R` prints the three-row data frame with `total` 5, 7, 9.
+- Julia to Python: the `uv run julia` command in 3.2 prints `Hello, Julia!` and the 3×3 `DataFrame`.
+- Python to Julia: `uv run python examples/python_to_julia.py` prints `Hello, Python!`, `2.5` and the pandas frame.
+- R package stays clean: `R CMD build . && R CMD check --as-cran dvesimpler_*.tar.gz` reports no new NOTEs about `Project.toml`, `Manifest.toml`, `src/*.jl`, `test`, `scripts` or `examples`.
+- Python tests still pass: `uv run pytest tests/pytest`.
+
+## Common pitfalls
+
+- `Pkg.test()` cannot see `tests/`. Use `test/runtests.jl`.
+- Forgetting the `.Rbuildignore` lines produces R CMD check NOTEs about non-standard files.
+- Julia keeps compiling on first use: the first `using Dve` or `using PythonCall` in a fresh depot is slow. Run `Pkg.instantiate()` once and let precompilation finish. Julia 1.13 is reported to precompile about 30% faster than 1.12.[^ac-julia113]
+- `JuliaConnectoR` and `PythonCall` both need `Dve` loadable in the active environment. If `juliaImport("Dve")` fails, you probably did not activate `examples/`.
+- PythonCall silently creating its own Conda environment: set `JULIA_CONDAPKG_BACKEND=Null` and `JULIA_PYTHONCALL_EXE` before the first `using PythonCall`. Setting them afterwards has no effect.
+- Embedding Julia in Python (`juliacall`) and Python in Julia (`PythonCall`) in the same process is possible but easy to get wrong. Keep the direction one-way per script.
+- 1-based indexing, column-major arrays and `.` broadcasting trip up Python and R programmers. Index and slice conversions deserve explicit tests.
+- LSP breakage after upgrades: `LanguageServer.jl` 6.0 changed `runserver()`, so pin or update editor clients together with the server.[^ac-ls6]
+- Never commit editor tooling (`LanguageServer`, `IJulia`, `Revise`) into `Project.toml`.
+- R CMD check on CRAN machines: Julia is absent there, so R code that calls Julia must be guarded (`requireNamespace`, `skip_on_cran()` in testthat).
+- Julia workspaces need Julia 1.12+. Older versions silently ignore or misread `[workspace]`.
+- Version-specific manifests (`Manifest-v1.13.toml`) shadow `Manifest.toml` without warning. Decide once which one you commit.
+
+## Unverified items and documentation to check
+
+- Julia 1.13.1 is tagged and installable via `juliaup add 1.13`. Check the Julia announcements and `juliaup` docs.
+- `-S julia --project=@script` shebang support. Check the Julia command-line manual.
+- `entryfile` key in `Project.toml`. Check the Pkg TOML-files documentation.
+- Workspace member needing no `[sources]` entry for the parent package. Check the Pkg workspaces section.
+- Whether the VS Code Julia extension handles workspace members automatically, and the exact setting `julia.environmentPath`. Check the extension documentation.
+- Maintenance status of `eglot-jl` and `lsp-julia`. Check each repository's recent commits.
+- `LanguageServer.jl` 6.0 details (changed `runserver` signature, Julia 1.13 SymbolServer patch for 5.x). Check the release notes and the downstream issue.
+- `JUPYTER` environment variable honoured by `IJulia.installkernel`. Check the IJulia README.
+- `JuliaConnectoR` translation rules (length-1 vectors, data frames to Tables objects, `JULIA_PROJECT` handling). Check the package reference manual.
+- `pytable`, `PyPandasDataFrame` and `PyArray` names, and their copy semantics. Check the PythonCall documentation.
+- numpy to Julia default conversion being a zero-copy `PyArray`. Check the PythonCall conversion-rules page.
+- `PYTHON_JULIAPKG_EXE` and `PYTHON_JULIAPKG_PROJECT` names, and `juliapkg` behaviour with workspace members. Check the `juliapkg` README.
+- `inst/python/dve` exposed as importable `dve` through your `pyproject.toml`. Check your own packaging configuration.
+
+## Additional Notes
+
+- Shipping Julia code inside the R package: for `dvesimpler` to call `Dve` after `R CMD INSTALL`, the Julia sources must live under `inst/julia/` in the tarball, because `src/*.jl` is ignored. Keep the repository root as the development source of truth and generate or copy the `inst/julia` tree in a build step. Declare `JuliaConnectoR` in `Suggests`, never `Imports`.
+- Package extensions: keep `Dve` free of `PythonCall`. If you later want built-in pandas conversion helpers, use `[weakdeps]` and `[extensions]` so the dependency loads only when `PythonCall` is present.
+- Jupytext and GLFM: Jupytext supports Julia notebooks, so the `julia-dve` kernel fits your Markdown-paired workflow.
+- CI (GitLab): cache `~/.julia` and the `uv` cache, and run `Pkg.test()` and `pytest` in the same Podman image. Pin the Julia version through `juliaup` or a base image.
+- Julia 1.13 also adds REPL syntax highlighting and `@__FUNCTION__`, per the release highlights.[^ac-julia113]
+
+[^ac-julia113]: Julia 1.13 Highlights, 10 Sep 2026, <https://julialang.org/blog/2026/09/julia-1.13-highlights/>
+[^ac-juliaup]: juliaup, the Julia installer and version manager, <https://github.com/JuliaLang/juliaup>
+[^ac-pkg-toml]: Pkg.jl manual, "Project.toml and Manifest.toml" (including Workspaces and `[sources]`), <https://pkgdocs.julialang.org/v1/toml-files/>
+[^ac-pkg-creating]: Pkg.jl manual, "Creating Packages" (layout, tests), <https://pkgdocs.julialang.org/v1/creating-packages/>
+[^ac-ws-discourse]: Julia Discourse, "How to use workspaces to test?", <https://discourse.julialang.org/t/how-to-use-workspaces-to-test/133670>
+[^ac-lsjl]: LanguageServer.jl, <https://github.com/julia-vscode/LanguageServer.jl>
+[^ac-jws]: JuliaWorkspaces.jl, <https://github.com/julia-vscode/JuliaWorkspaces.jl>
+[^ac-symsrv]: SymbolServer.jl (archived 13 Jul 2026), <https://github.com/julia-vscode/SymbolServer.jl>
+[^ac-staticlint]: StaticLint.jl (archived 13 Jul 2026), <https://github.com/julia-vscode/StaticLint.jl>
+[^ac-ls6]: positron-julia pull request 46, pinning LanguageServer.jl to 5.x after the 6.0 release, <https://github.com/TidierOrg/positron-julia/pull/46>
+[^ac-eglotjl]: eglot-jl, <https://github.com/non-Jedi/eglot-jl>
+[^ac-lspjulia]: lsp-julia, <https://github.com/gdkrmr/lsp-julia>
+[^ac-ijulia]: IJulia.jl, <https://github.com/JuliaLang/IJulia.jl>
+[^ac-juliaconnector]: JuliaConnectoR on CRAN, <https://cran.r-project.org/package=JuliaConnectoR>
+[^ac-juliacall-r]: JuliaCall (R package), <https://github.com/JuliaInterop/JuliaCall>
+[^ac-pythoncall]: PythonCall.jl documentation, <https://juliapy.github.io/PythonCall.jl/stable/>
+[^ac-juliacall-py]: juliacall (Python side of PythonCall), <https://juliapy.github.io/PythonCall.jl/stable/juliacall/>
+[^ac-juliapkg]: pyjuliapkg (`juliapkg`), <https://github.com/JuliaPy/pyjuliapkg>
+[^ac-condapkg]: CondaPkg.jl, <https://github.com/JuliaPy/CondaPkg.jl>
+[^ac-tables]: Tables.jl documentation, <https://tables.juliadata.org/stable/>
+[^ac-rexts]: Writing R Extensions, `.Rbuildignore` and package structure, <https://cran.r-project.org/doc/manuals/r-release/R-exts.html>
+
+## Revision: in-process R to Julia, large data, dual runtime
+
+> Reconsider R-Julia integration with in-process model provided by "JuliaCall", discussing zero-copy scenario for big memory dataframes, or even lazy models,  as those implemented in Rust based "Polars" dataframes.
+>
+>
+> In addition, consider the dual project runtime environment, sharing the same codebase:
+>
+> - native "out-of-container" with python and julia
+> - in-container "podman" rootless container with R in addition to julia and python
+>
+>
+> externally, home is ordinary user home, in container home is mapped to a project subdirectory
+> uv virtual environments, R renv environments and ~/.julia directory are different
+>
+> the point is find a way to introduce an optional julia dependency: "RCall" where R is available only in container runtime
+>
+> what to include in Project.toml, or define a julia workspace, that can be operated only in-container runtime
+
+
+This supersedes the R-to-Julia choice and the workspace advice in the earlier sections where they conflict. The rest (skeleton, tests, LSP, Python bridges) is unchanged.
+
+## 1. R to Julia reconsidered: JuliaCall
+
+### What changes with the in-process model
+
+`JuliaConnectoR` (earlier choice) runs Julia in a separate process and serializes everything over TCP. It can never be zero-copy. `JuliaCall` embeds Julia in the R process, so shared memory becomes possible. That is the right trade once large data frames matter.
+
+| Criterion | `JuliaCall` (in-process) | `JuliaConnectoR` (out-of-process) |
+| --- | --- | --- |
+| Purpose | Julia embedded in the R process, conversions through `RCall.jl`[^ac-jc-readme] | Julia as a TCP server, serialized transfers |
+| Maintenance | `[unverified]`, check recent CRAN and GitHub activity | Maintained on CRAN |
+| Setup effort | Higher: needs a Julia matching R's build, plus `RCall.jl` precompiled against the current R | Low |
+| Prefer when | Large numeric data, low latency, shared memory | Isolation, simple deployment |
+
+Two consequences for your dual-runtime design, both verified against the `julia_setup()` documentation:[^ac-jc-setup]
+
+- `JuliaCall` depends on `RCall.jl` on the Julia side. It is not optional in the container; it is infrastructure of the bridge.
+- `julia_setup()` has `install = TRUE` (installs the dependent Julia packages), `useRCall = TRUE` and `rebuild = FALSE`. The package's own setup code notes that `RCall` must be precompiled with the current R. So the Julia depot is bound to the R installation. This is a strong argument for separate depots per runtime (section 4).
+
+### In-process example
+
+File: `examples/r_juliacall.R`
+
+```r
+library(JuliaCall)
+
+# Environment pre-provisioned (see section 4): do not let JuliaCall install anything.
+julia_setup(install = FALSE)
+julia_command("using Dve")
+
+df <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
+
+julia_assign("df", df)                          # R -> Julia: copy by default
+h <- julia_eval("Dve.add_total(df)", "Julia")   # result stays in Julia (a handle)
+julia_eval("size(Dve.add_total(df))")           # only a small result crosses over
+```
+
+- The second argument of `julia_eval` selects where the value ends up. `"Julia"` returns a reference instead of converting to R. This is the main tool for keeping big objects out of R: R holds a handle and pulls only small results. I verified the `"Julia"` option from forum examples.
+- Whether `julia_assign` turns an R `data.frame` into a Julia `DataFrame` automatically is `[unverified]`. `Dve.add_total` accepts any Tables.jl source, so it works either way.
+
+## 2. What zero-copy means between R and Julia
+
+### Memory layouts
+
+| R object | R layout | Julia counterpart | Zero-copy possible? |
+| --- | --- | --- | --- |
+| `numeric` | contiguous float64, `NA` is a NaN payload | `Vector{Float64}` | Yes, but `NA` becomes an ordinary NaN, not `missing` |
+| `integer` | int32, `NA` is `INT_MIN` | `Vector{Int32}` | Yes, with a sentinel instead of `missing` |
+| `logical` | int32 | `Vector{Bool}` is 1 byte | No |
+| `character` | pointers into a global string cache | `Vector{String}` | No |
+| `factor` | int32 codes plus a levels attribute | `CategoricalArray`/`PooledArray` | Codes only |
+| `data.frame` | list of column vectors plus attributes | `DataFrame` | Per column, for numeric/integer columns only |
+| ALTREP objects (compact sequences, deferred strings) | Lazy; data pointer materializes on demand | n/a | Touching the data pointer materializes a copy |
+
+### Direction by direction
+
+- Julia to R: verified zero-copy path. The CRAN package `jlview` returns ALTREP vectors whose data pointer points into Julia memory, integrates with `JuliaCall`, and pins the Julia array until R's garbage collector finalizes it.[^ac-jlview] Its vignette states that plain `JuliaCall` transfers copy, and reports a 9.3 GB matrix case dropping from seconds to milliseconds. Writes to such a vector materialize an ordinary R copy, so R semantics are preserved.
+- R to Julia: `JuliaCall` converts with `RCall.rcopy`, which copies. A forum thread by a maintainer says wrapping R's raw bits is possible in principle and mentions `RCall.protect` and `unsafe_array`.[^ac-fast4d] I could not confirm a supported, documented zero-copy R-to-Julia API, so treat it as `[unverified]` and do not build on it.
+
+### Hazards of shared memory
+
+- R is copy-on-modify with reference counting. A Julia function mutating a vector borrowed from R changes an object R believes is immutable. Treat borrowed data as read-only (convention only: Base Julia has no read-only array type).
+- The two garbage collectors do not know each other. The owner must outlive every borrower. `jlview` handles this for Julia-owned memory. For R-owned memory you must keep the R object protected yourself.
+- `saveRDS`, serialization and many base-R operations materialize ALTREP vectors. Verify with `.Internal(inspect(x))` or by monitoring RSS that no copy happened.
+- `NA` semantics differ (the table above). Never hand a borrowed integer column to Julia code that expects `missing`.
+
+## 3. Columnar and lazy models (Polars-style)
+
+### Why borrowing numeric vectors does not scale to data frames
+
+Strings, factors, logical columns and `NA` handling all defeat direct sharing. Laziness (query plans, predicate and projection pushdown) lives in the engine, not in the memory layout. Polars is a lazy engine over an Arrow-style columnar layout. The portable common denominator across R, Julia and Python is therefore Apache Arrow, not R's or Julia's native vectors.
+
+### Three levels
+
+| Level | Mechanism | Zero-copy? | Status |
+| --- | --- | --- | --- |
+| A | Borrow numeric columns in-process (`jlview` for Julia to R) | Julia to R yes, R to Julia `[unverified]` | Optimization for dense numeric matrices |
+| B | Shared uncompressed Arrow IPC (Feather v2) files, memory-mapped by every reader | Reads yes, one materialization at the writer | Recommended contract |
+| C | A lazy engine per runtime over the same files (Polars, DuckDB) | Engine-internal | Optional, per runtime |
+
+Level B details:
+
+- `Arrow.jl` reads files through `Mmap` and exposes columns as Arrow-backed vectors. `DataFrame(Arrow.Table(file))` uses those vectors directly, and `copy(...)` materializes ordinary vectors.[^ac-arrow-jl] The DataFrames documentation warns that Arrow-backed columns are immutable, so pass `copycols = true` when you need mutable ones.[^ac-df-copycols]
+- Compression defeats mmap. Write files uncompressed.
+- Strings come back as Arrow list views, and converting to Julia `String` copies per element.
+- Writers: R `arrow::write_feather(df, path, compression = "uncompressed")`, Python Polars `LazyFrame.sink_ipc(path)`, Julia `Arrow.write(path, tbl)`. Readers: R `arrow::read_feather(path, mmap = TRUE)`, Python `pl.scan_ipc(path)`, Julia `Arrow.Table(path)`. All reader and writer argument names here are `[unverified]`; check each package's documentation.
+
+File: `examples/arrow_exchange.jl`
+
+```julia
+using Arrow, DataFrames
+
+tbl = Arrow.Table("data/cache/big.arrow")        # mmap, no copy
+df  = DataFrame(tbl)                             # columns are the Arrow vectors (read-only)
+out = combine(groupby(df, :g), :x => sum => :sx) # computed result is a normal in-memory frame
+Arrow.write("data/cache/result.arrow", out)      # one materialization, readable by R and Python
+```
+
+The path layout assumes `data/cache/` is on the project bind mount, visible to both runtimes. On a Linux host, native and container processes mapping the same file share the page cache. On macOS the Podman VM breaks this sharing (`[unverified]`).
+
+Findings on lazy engines in Julia:
+
+- Julia has no Polars binding that I could verify. Treat that as `[unverified]` and check the Julia package registry. Options are Python Polars through `PythonCall` (already in your toolchain), or a DuckDB client on the same files.
+- `Arrow.jl` is a pure-Julia implementation. I found no Arrow C Data Interface support, so in-process pointer exchange with R `arrow` or `pyarrow` is `[unverified]` and should be assumed unavailable.
+
+Recommendation: make level B the contract between runtimes and use level A only for dense numeric arrays where measured copies hurt.
+
+## 4. Dual runtime and the optional RCall dependency
+
+### Differences between the runtimes
+
+| Resource | Native (Python and Julia) | Container (R, Julia and Python) | Rule |
+| --- | --- | --- | --- |
+| `HOME` | ordinary user home | project subdirectory (for example `<project>/.container-home`) | Different `~/.julia` automatically |
+| uv environment | `.venv` | must not reuse the native one | Set `UV_PROJECT_ENVIRONMENT` in the container; venvs are not relocatable (hard-coded interpreter paths) |
+| Julia depot | `~/.julia` | `$HOME/.julia` (inside the project mount) | Never share: `RCall` precompiles against the container's R, and mixed depots invite stale caches |
+| `renv` | not present (no R) | `renv` library under the container home | `RENV_PATHS_ROOT` per runtime |
+| Julia manifests | root `Manifest.toml`, no `RCall` | separate `RCall` environment, own manifest | See below |
+
+### Why not put RCall in Project.toml or a workspace member
+
+- Root `[deps]`: it would be installed and precompiled in the native runtime where there is no R.
+- A `[workspace]` member: all members share one root `Manifest.toml`, so `Pkg.instantiate()` natively would still resolve and install `RCall` and its dependencies. The expected failure is a precompile error without R (`[unverified]`, check the `RCall.jl` installation notes). The `[workspace] projects` list is also static, so it cannot be conditional on the runtime.
+- Conclusion: a workspace is the wrong tool for dependencies that exist in only one runtime. Use a separate, non-workspace environment, plus an optional extension if code in `Dve` itself must talk to R.
+
+### Layout additions
+
+```text
+<project-root>
+  Project.toml              # Dve, workspace: test, scripts, examples (no RCall)
+  Manifest.toml             # native manifest
+  ext/DveRCallExt.jl        # optional extension, loads only if RCall is present
+  envs/rcall/Project.toml   # container-only environment: Dve (path) + RCall
+  envs/rcall/Manifest.toml  # generated and committed from the container
+  .container-home/          # container HOME, never committed, never in the R tarball
+```
+
+Name the directory `envs/rcall`, not `r/`. On case-insensitive filesystems `r/` collides with `R/`.
+
+File: `.Rbuildignore` (append these lines)
+
+```text
+^envs$
+^ext$
+^\.container-home$
+```
+
+### Container-only environment
+
+Dve is brought in by path, so the root manifest is untouched.
+
+File: `envs/rcall/Project.toml`
+
+```toml
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dve = "5b3e2a8c-91d4-4f06-8a7e-2c1d9e6f4b30"
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+
+[sources]
+Dve = {path = "../.."}
+
+[compat]
+DataFrames = "1"
+```
+
+- Copy the `RCall` UUID from the result of `Pkg.add("RCall")` in this environment rather than trusting my transcription. Add `RCall` to `[compat]` with the version that command resolves.
+- `[sources]` with `path` requires Julia 1.11 or later (fine for 1.13). Whether Pkg ignores the `[workspace]` table of a dependency loaded by path is `[unverified]`.
+- Create it once inside the container, working directory `<project-root>`:
+
+```bash
+julia --project=envs/rcall -e 'using Pkg; Pkg.add("RCall"); Pkg.instantiate()'
+```
+
+- `JuliaCall` also needs its own helper Julia packages. Run `julia_setup(install = TRUE)` once with `JULIA_PROJECT=envs/rcall`, let it populate the environment, commit the resulting `envs/rcall/Manifest.toml`, and use `install = FALSE` afterwards. Exactly which packages it adds is `[unverified]`.
+
+### Optional code-level integration (only if Dve must call R)
+
+Two different cases are easy to confuse.
+
+- R hosts Julia (`JuliaCall`): `RCall` is part of the bridge. `Dve` never imports it. The `envs/rcall` environment is all you need.
+- Julia hosts R (`RCall.jl`, for example a Julia script calling an R package): `Dve` needs optional code. Use a weak dependency plus an extension, so `RCall` is neither installed nor loaded unless the active environment contains it.
+
+File: `Project.toml` (additions to the existing file)
+
+```toml
+[weakdeps]
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+
+[extensions]
+DveRCallExt = "RCall"
+```
+
+File: `src/Dve.jl` (add inside the module, and extend `export`)
+
+```julia
+"Convert an R object to a DataFrame. Methods are added by the RCall extension."
+function from_r end
+
+"Convert a DataFrame to an R object. Methods are added by the RCall extension."
+function to_r end
+```
+
+File: `ext/DveRCallExt.jl`
+
+```julia
+module DveRCallExt
+
+using Dve
+using RCall
+using DataFrames: DataFrame
+
+Dve.from_r(x::RObject) = rcopy(DataFrame, x)   # copies
+Dve.to_r(df::DataFrame) = robject(df)          # copies
+
+end # module
+```
+
+- Native runtime: `RCall` is only a weak dependency, so the resolver does not install it and `Dve.from_r` is just a stub without methods. Calling it raises `MethodError`.
+- `[compat]` for weak dependencies follows the same rules as for normal ones.
+- That `rcopy(DataFrame, ...)` and `robject(::DataFrame)` work without extra imports is `[unverified]`. Check the `RCall.jl` conversion documentation.
+
+### Runtime configuration
+
+Runtime selection happens through environment variables, not through `Project.toml`.
+
+| Variable | Native | Container |
+| --- | --- | --- |
+| `DVE_RUNTIME` | `native` | `container` (set in the image) |
+| `HOME` | user home | `<project>/.container-home` |
+| `UV_PROJECT_ENVIRONMENT` | unset (`.venv`) | `$HOME/venv` |
+| `JULIA_DEPOT_PATH` | unset | unset (resolves to `$HOME/.julia`) |
+| `JULIA_PROJECT` | `.` | `.` for Julia work, `envs/rcall` for R sessions |
+| `JULIA_CONDAPKG_BACKEND` | `Null` | `Null` |
+| `JULIA_PYTHONCALL_EXE` | `.venv/bin/python` | `$HOME/venv/bin/python` |
+| `RENV_PATHS_ROOT` | not applicable | `$HOME/renv` |
+
+Shell, working directory `<project-root>` (host side):
+
+```bash
+podman run --rm -it --userns=keep-id \
+  -v "$PWD":/work:Z -w /work \
+  -e HOME=/work/.container-home \
+  -e DVE_RUNTIME=container \
+  -e UV_PROJECT_ENVIRONMENT=/work/.container-home/venv \
+  -e RENV_PATHS_ROOT=/work/.container-home/renv \
+  -e JULIA_CONDAPKG_BACKEND=Null \
+  -e JULIA_PYTHONCALL_EXE=/work/.container-home/venv/bin/python \
+  dve-dev:latest bash
+```
+
+- `--userns=keep-id` maps your host user into the rootless container so files on the bind mount keep sane ownership, and `:Z` relabels the mount for SELinux.
+- The `dve-dev` image name is a placeholder for your own image. It must contain R built with a shared library (`libR`, needed for embedding), Julia, uv and Python. Rocker-style R images normally qualify; `[unverified]` for your base image.
+
+File: `R/julia.R`
+
+```r
+dve_julia_setup <- function(project = file.path("envs", "rcall")) {
+  if (Sys.getenv("DVE_RUNTIME") != "container") {
+    stop("Julia-from-R is only supported in the container runtime.", call. = FALSE)
+  }
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    stop("Package 'JuliaCall' is required.", call. = FALSE)
+  }
+  # Must be set before the first julia_setup(): the embedded Julia reads it at startup.
+  Sys.setenv(JULIA_PROJECT = normalizePath(project, mustWork = TRUE))
+  JuliaCall::julia_setup(install = FALSE)
+  JuliaCall::julia_command("using Dve")
+  invisible(TRUE)
+}
+```
+
+- `JuliaCall` goes in `Suggests`, never `Imports`, and R tests that use it start with `skip_on_cran()` and `skip_if(Sys.getenv("DVE_RUNTIME") != "container")`.
+- That the embedded Julia honors `JULIA_PROJECT` at startup is `[unverified]`. Fallback: run `julia_command('import Pkg; Pkg.activate("envs/rcall")')` right after `julia_setup()`, understanding that `RCall` must then be found on the stacked global environment.
+- After the first `julia_setup()` the project cannot be changed cleanly. Restart the R session instead.
+
+## Acceptance checklist (additions)
+
+Run inside the container unless stated otherwise.
+
+- Native, working directory `<project-root>`: `julia --project=. -e 'using Pkg; Pkg.instantiate()'` succeeds with no R installed, and `grep -c RCall Manifest.toml` prints `0`.
+- Native: `julia --project=. -e 'using Pkg; Pkg.test()'` passes (no `RCall` involved).
+- Container: `julia --project=envs/rcall -e 'using RCall; using Dve; println(Dve.hello_world("Hello","R"))'` prints `Hello, R!` and `Dve.from_r` has a method (`methods(Dve.from_r)` is non-empty).
+- Container: `Rscript -e 'source("R/julia.R"); dve_julia_setup(); JuliaCall::julia_eval("1+1")'` prints `[1] 2`.
+- Container: `Rscript examples/r_juliacall.R` prints the size of the result without converting the whole frame.
+- Native and container: both read `data/cache/big.arrow` with `examples/arrow_exchange.jl` and agree on the result. Check no per-process memory growth proportional to the file size.
+- `R CMD build .` produces a tarball without `.container-home`, `envs` or `ext`.
+
+## Additional pitfalls
+
+- A bind-mounted `.container-home` is large (depot, venv, renv). Without the `.Rbuildignore`, `.gitignore` and container-ignore entries it gets bundled or committed.
+- A venv created natively and used in the container (or the reverse) fails with broken interpreter links. Keep `UV_PROJECT_ENVIRONMENT` different per runtime.
+- A Julia depot copied between runtimes can carry precompile caches built against a different R or libc. Rebuild with `JuliaCall::julia_setup(rebuild = TRUE)` when R changes.
+- Forking R workers (`parallel::mclapply`) with an embedded Julia running is unsafe. Use socket clusters, or separate processes with the Arrow files as the interface.
+- Borrowed memory plus `Arrow.Table` columns are read-only. Mutating them is either an error or undefined behaviour.
+
+## Additional unverified items
+
+- Supported zero-copy R to Julia path (`unsafe_array`, `RCall.protect`). Check the `RCall.jl` documentation.
+- `julia_assign` converting `data.frame` to `DataFrame` automatically. Check the `JuliaCall` reference.
+- Which Julia packages `julia_setup(install = TRUE)` installs, and embedded `JULIA_PROJECT` handling. Check `JuliaCall`'s `julia_setup` documentation and issue tracker.
+- Reader and writer argument names for R `arrow` and Python Polars. Check each package's documentation.
+- Page-cache sharing of mmapped files between host and container on macOS. Check Podman machine documentation.
+- Julia Polars bindings and Arrow C Data Interface support in `Arrow.jl`. Check the Julia registry and the `Arrow.jl` issue tracker.
+- `[sources]` path dependency whose own `Project.toml` has a `[workspace]` table. Check the Pkg documentation.
+- `RCall` and `JuliaCall` maintenance status and compatibility with Julia 1.13. Check their repositories before pinning.
+
+[^ac-jc-readme]: JuliaCall README, <https://github.com/JuliaInterop/JuliaCall>
+[^ac-jc-setup]: JuliaCall reference, `julia_setup`, <https://search.r-project.org/CRAN/refmans/JuliaCall/html/julia_setup.html>
+[^ac-jlview]: jlview, zero-copy Julia arrays in R via ALTREP, <https://github.com/tanaylab/jlview>
+[^ac-fast4d]: Julia Discourse, "Fast 4D argmax" (discussion of JuliaCall copying), <https://discourse.julialang.org/t/fast-4d-argmax/58566>
+[^ac-arrow-jl]: Arrow.jl user manual, <https://arrow.apache.org/julia/stable/manual>
+[^ac-df-copycols]: DataFrames.jl constructor documentation (`copycols` and immutable Arrow columns), <https://dataframes.juliadata.org/stable/>
+
 
 # A:1 (Gemini)
 
