@@ -1,0 +1,10 @@
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dve = "bf600719-03fc-4660-bed4-7402f139157a"
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+
+[sources]
+Dve = {path = "../../../.."}
+
+[compat]
+julia = ">=1.13"
