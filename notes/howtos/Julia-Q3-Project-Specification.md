@@ -58,13 +58,6 @@ doctype: md-report
    - see: [Adding Julia to a hybrid R + Python research project (Kimi)](#a1-kimi)
    - see: [Julia in a Multi-Language Research Repository (Perplexity)](#a1-perplexity)
    - see: [Cross Language Integration Bridge (Vibe)](#a1-vibe)
-2. [Q:2 - TODO:(q2-ref)](#q2)
-   - see: [TODO:(a2-ref-claude) (Claude)](#a2-claude)
-   - see: [TODO:(a2-ref-gemini) (Gemini)](#a2-gemini)
-   - see: [TODO:(a2-ref-chatgpt) (ChatGPT)](#a2-chatgpt)
-   - see: [TODO:(a2-ref-perplexity) (Perplexity)](#a2-perplexity)
-   - see: [TODO:(a2-ref-deepseek) (DeepSeek)](#a2-deepseek)
-   - see: [TODO:(a2-ref-vibe) (Vibe)](#a2-vibe)
 3. [A:a - TODO:(appendix-a)](#aa)
 
 
@@ -591,17 +584,17 @@ Is `Pkg.add` enough? For adding a dependency, yes.
 - Registries are Git repositories mapping names to UUIDs and versions. `General` is the default, and private registries are added with `Pkg.Registry.add(url)`.
 - Commit `Manifest.toml` for this repository: it is an application-style research repo, like committing `uv.lock` and `renv.lock`. Versioned `Manifest-v1.13.toml` files take precedence when present.
 
-| Python (uv) | R | Julia |
-| --- | --- | --- |
-| `pyproject.toml` | `DESCRIPTION` | `Project.toml` |
-| `uv.lock` | `renv.lock` | `Manifest.toml` |
-| `uv add x` | `renv::install("x")` | `Pkg.add("x")` |
-| `uv sync` | `renv::restore()` | `Pkg.instantiate()` |
-| `uv run cmd` | `Rscript` | `julia --project=. script.jl` |
-| `pip install -e .` | `devtools::load_all()` | `Pkg.develop(path = ".")` |
-| dependency groups, extras | `Suggests` | test environment or workspace member |
-| `[tool.uv.workspace]` | (none) | `[workspace]` |
-| `pytest` / `testthat` | `devtools::test()` | `Pkg.test()` |
+| Python (uv)               | R                      | Julia                                |
+| ---                       | ---                    | ---                                  |
+| `pyproject.toml`          | `DESCRIPTION`          | `Project.toml`                       |
+| `uv.lock`                 | `renv.lock`            | `Manifest.toml`                      |
+| `uv add x`                | `renv::install("x")`   | `Pkg.add("x")`                       |
+| `uv sync`                 | `renv::restore()`      | `Pkg.instantiate()`                  |
+| `uv run cmd`              | `Rscript`              | `julia --project=. script.jl`        |
+| `pip install -e .`        | `devtools::load_all()` | `Pkg.develop(path = ".")`            |
+| dependency groups, extras | `Suggests`             | test environment or workspace member |
+| `[tool.uv.workspace]`     | (none)                 | `[workspace]`                        |
+| `pytest` / `testthat`     | `devtools::test()`     | `Pkg.test()`                         |
 
 ### Dev, test and LSP dependencies
 
@@ -5653,9 +5646,77 @@ TODO:(a2-vibe) ...
 
 [^](#toc)
 
-## Appendix a
+## Appendix a - Julia Project Example
 
-TODO:(aa-text) ...
+An implementation example
+
+### Project Identification
+
+| *Type*         | *Name*         | *Note*              |
+|----------------+----------------+---------------------|
+| project name   | `dve-sample-r` | repository project  |
+| Python package | `dvepy`        | in `pyproject.toml` |
+| R package      | `dvesimpler`   | in `DESCRIPTION`    |
+| Julia package  | `Dve`          | in `Project.toml`   |
+
+- Project Name:  
+
+
+### Project Layout
+
+```text
+<project-root>
+
+  # "Python"
+  
+  pyproject.toml                    # Python `dvepy` project definition
+  uv.lock                           # `uv` resolved package dependencies
+  inst/python/                      # `dvepy` package sources
+  inst/python/dve/__init__.py       # `dvepy` package `dve` module
+  inst/python/dve/scripts/          # `dvepy` package internal scripts
+  exec/*.py                         # python external executable scripts
+  tests/pytest/                     # `dvepy` package `pytest` unit-testing
+  notebooks/*.py                    # python notebooks (in `jupytext` percent format)
+  notes/samples/python              # un-configured python samples
+
+
+  # "R"
+  
+  DESCRIPTION                       # R `dvesimpler` project definition
+  renv.lock                         # `renv` resolved package dependencies
+  dvesimpler.Rproj                  # RStudio  `dvesimpler` project
+  .Rbuildignore                     # non CRAN compliant ignored files
+  R/                                # `dvesimpler` package sources
+  R/dvesimpler-package.r            # Roxygen  `dvesimpler` project metadata
+  inst/include                      # `dvesimpler` C++ package interface
+  src/*.cpp                         # Rcpp `dvesimpler` C++ package sources
+  src/Makevars                      # Rcpp `dvesimpler` public build configuration
+  etc/R/Makevars                    # Rcpp `~/.R/Makevars` private build configuration
+  exec/*.r                          # R external executable scripts
+  tests/testthat/                   # `dvesimpler` package `testthat` unit-testing
+  vignettes/*.Rmd                   # R markdown notebooks (in `knitr` Rmarkdown format)
+  notebooks/*.r                     # R notebooks (in `jupytext` percent format)
+  notes/samples/r                   # un-configured R samples
+
+
+  # "Julia"
+
+  Project.toml                      # Julia `Dve` project definition
+  Manifest.toml                     # `Pkg` resolved package dependencies
+  src/Dve.jl                        # Julia package module
+  src/*.jl                          # Julia sources (ignored by R)
+  test/Project.toml                 # Julia test environment, workspace member
+  test/runtests.jl                  # Julia tests: run with `Pkg.test()`
+  exec/*.jl                         # Julia external executable scripts
+  etc/julia/envs                    # Julia optional extensions environments
+  etc/julia/envs/rcall/             # Julia <-> R "in-process" binding environment
+  ext/                              # Julia optional extensions sources
+  ext/DveRCallExt.jl                # Julia -> R optional extension, via `RCall.jl`
+  notebooks/*.jl                    # Julia notebooks (in `jupytext` percent format)
+  notes/samples/julia               # un-configured Julia samples
+  
+```
+
 
 <!-- }}} \\ %a. -->
 <!-- {{{ // %*

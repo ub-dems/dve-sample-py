@@ -19,7 +19,7 @@ function parse_cli(args)
        run as (from project base directory):
 
         ./exec/dummy/julia-hello.jl Alice Bob
-        ./exec/dummy/julia-hello.jl -s Hi  Alice Bob
+        ./exec/dummy/julia-hello.jl -s 'Bonjour'  Alice Bob
         ./exec/dummy/julia-hello.jl --help
 
       """, preformatted_epilog = true)
