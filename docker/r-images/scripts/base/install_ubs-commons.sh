@@ -38,6 +38,37 @@ C_IWhite='\033[0;97m'
 C_UWhite='\033[4;37m'
 C_BIWhite='\033[1;97m'
 
+exit_colors() {
+
+    echo -e "${C_Green}  Green        ${C_OFF}"
+    echo -e "${C_IGreen}  IGreen       ${C_OFF}"
+    echo -e "${C_Blue}  Blue         ${C_OFF}"
+    echo -e "${C_BBlue}  BBlue        ${C_OFF}"
+    echo -e "${C_UBlue}  UBlue        ${C_OFF}"
+    echo -e "${C_On_Blue}  On_Blue      ${C_OFF}"
+    echo -e "${C_IBlue}  IBlue        ${C_OFF}"
+    echo -e "${C_On_IBlue}  On_IBlue     ${C_OFF}"
+    echo -e "${C_BIBlue}  BIBlue       ${C_OFF}"
+    echo -e "${C_BCyan}  BCyan        ${C_OFF}"
+    echo -e "${C_ICyan}  ICyan        ${C_OFF}"
+    echo -e "${C_UCyan}  UCyan        ${C_OFF}"
+    echo -e "${C_BICyan}  BICyan       ${C_OFF}"
+    echo -e "${C_BYellow}  BYellow      ${C_OFF}"
+    echo -e "${C_IYellow}  IYellow      ${C_OFF}"
+    echo -e "${C_BIYellow}  BIYellow     ${C_OFF}"
+    echo -e "${C_BRed}  BRed         ${C_OFF}"
+    echo -e "${C_IRed}  IRed         ${C_OFF}"
+    echo -e "${C_URed}  URed         ${C_OFF}"
+    echo -e "${C_BIRed}  BIRed        ${C_OFF}"
+    echo -e "${C_BWhite}  BWhite       ${C_OFF}"
+    echo -e "${C_IWhite}  IWhite       ${C_OFF}"
+    echo -e "${C_UWhite}  UWhite       ${C_OFF}"
+    echo -e "${C_BIWhite}  BIWhite      ${C_OFF}"
+
+    exit 0
+    
+}
+
 # ---(logs)------------------------------------------------
 CLOG=""
 LCTX="-"

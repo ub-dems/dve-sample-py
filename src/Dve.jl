@@ -15,6 +15,57 @@ using Statistics: mean
 
 export hello_world, scaled_mean, add_total
 
+
+# -------------------------------------------------------------------------
+
+export r_available
+
+"""
+    r_available() -> Bool
+
+Return `true` if an R executable is discoverable through PATH.
+This does not verify that R can start successfully.
+"""
+function r_available()::Bool
+    Sys.which("R") !== nothing
+end
+
+"""
+    r_works() -> Bool
+
+Return `true` if R can be launched and reports its version.
+"""
+function r_works()::Bool
+    r = Sys.which("R")
+    isnothing(r) && return false
+
+    try
+        run(pipeline(`$r --version`, devnull))
+        return true
+    catch
+        return false
+    end
+end
+
+
+##
+# RCall.jl extension
+# see: `ext/DveRCallExt.jl`
+
+function rcall_extension_loaded()::Bool
+    Base.get_extension(Dve, :DveRCallExt) !== nothing
+end
+
+
+"Convert an R object to a DataFrame. Methods are added by the RCall extension."
+function from_r end
+
+"Convert a DataFrame to an R object. Methods are added by the RCall extension."
+function to_r end
+
+# -------------------------------------------------------------------------
+
+
 """
     hello_world(salutation, who) -> String
 

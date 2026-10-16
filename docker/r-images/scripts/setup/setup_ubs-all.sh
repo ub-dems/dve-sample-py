@@ -542,6 +542,39 @@ C_IRed='\033[0;91m'
 C_URed='\033[4;31m'
 C_BIRed='\033[1;91m'
 
+
+exit_colors() {
+
+    echo -e "${C_Green}  Green        ${C_OFF}"
+    echo -e "${C_IGreen}  IGreen       ${C_OFF}"
+    echo -e "${C_Blue}  Blue         ${C_OFF}"
+    echo -e "${C_BBlue}  BBlue        ${C_OFF}"
+    echo -e "${C_UBlue}  UBlue        ${C_OFF}"
+    echo -e "${C_On_Blue}  On_Blue      ${C_OFF}"
+    echo -e "${C_IBlue}  IBlue        ${C_OFF}"
+    echo -e "${C_On_IBlue}  On_IBlue     ${C_OFF}"
+    echo -e "${C_BIBlue}  BIBlue       ${C_OFF}"
+    echo -e "${C_BCyan}  BCyan        ${C_OFF}"
+    echo -e "${C_ICyan}  ICyan        ${C_OFF}"
+    echo -e "${C_UCyan}  UCyan        ${C_OFF}"
+    echo -e "${C_BICyan}  BICyan       ${C_OFF}"
+    echo -e "${C_BYellow}  BYellow      ${C_OFF}"
+    echo -e "${C_IYellow}  IYellow      ${C_OFF}"
+    echo -e "${C_BIYellow}  BIYellow     ${C_OFF}"
+    echo -e "${C_BRed}  BRed         ${C_OFF}"
+    echo -e "${C_IRed}  IRed         ${C_OFF}"
+    echo -e "${C_URed}  URed         ${C_OFF}"
+    echo -e "${C_BIRed}  BIRed        ${C_OFF}"
+    echo -e "${C_BWhite}  BWhite       ${C_OFF}"
+    echo -e "${C_IWhite}  IWhite       ${C_OFF}"
+    echo -e "${C_UWhite}  UWhite       ${C_OFF}"
+    echo -e "${C_BIWhite}  BIWhite      ${C_OFF}"
+
+    exit 0
+    
+}
+
+
 CLOG=""
 LCTX="-"
 LOG_LEVEL=""
@@ -2100,16 +2133,36 @@ do_ju_connector() {
       case "$julia_bindir" in
           "$HOME"/*)
               # path inside $HOME -> make it HOME-relative, expanded by R at startup
-              rel="${julia_bindir#"$HOME"/}"
-              line="JULIA_BINDIR=\${HOME}/${rel}"
+              julia_bindir_rel="${julia_bindir#"$HOME"/}"
+              julia_bindir_line="JULIA_BINDIR=\${HOME}/${julia_bindir_rel}"
               ;;
           *)
               # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
-              line="JULIA_BINDIR=${julia_bindir}"
+              julia_bindir_line="JULIA_BINDIR=${julia_bindir}"
               ;;
       esac
 
-      printf '%s\n' "$line" >> ~/.Renviron
+      printf '%s\n' "$julia_bindir_line" >> ~/.Renviron
+
+      sed -i '/JULIA_PROJECT=/d' \
+          ~/.Renviron
+
+      julia_project="$(dirname "$(realpath "./etc/julia/envs/rcall")")"
+
+      case "$julia_project" in
+          "$HOME"/*)
+              # path inside $HOME -> make it HOME-relative, expanded by R at startup
+              julia_project_rel="${julia_project#"$HOME"/}"
+              julia_project_line="JULIA_PROJECT=\${HOME}/${julia_project_rel}"
+              ;;
+          *)
+              # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
+              julia_project_line="JULIA_PROJECT=${julia_project}"
+              ;;
+      esac
+
+      printf '%s\n' "$julia_project_line" >> ~/.Renviron
+      
 
       sed -i '/JULIA_PYTHONCALL_EXE=/d' \
           ~/.Renviron
@@ -2154,11 +2207,11 @@ do_ju_show() {
       echo "JULIA_BINDIR=$julia_bindir"
       env | grep ^JULIA | sort
 
-      julia -e '
-        using Pkg
-          # Activate project package
-          Pkg.activate(".")
-          '
+      julia --project -e 'using Pkg;Pkg.status()'
+
+      # if [ -f "etc/julia/envs/rcall/Project.toml" ]; then
+      #     julia --project='etc/julia/envs/rcall' -e 'using Pkg;Pkg.status()'
+      # fi
 
     )
 
@@ -2807,6 +2860,10 @@ main() {
         --help|-h)
             shift
             exit_usage "$@"
+            ;;
+        --colors)
+            shift
+            exit_colors "$@"
             ;;
         --status|-s)
             shift

@@ -21,7 +21,6 @@
 ^CRAN-RELEASE$
 ^[^/]+.csv
 ^[^/]+.sh
-^data/ext$
 ^data-raw$
 ^\.dir-locals\.el$
 ^\.devcontainer$
@@ -30,7 +29,6 @@
 ^\.dockerignore.*$
 ^dist$
 ^docs$
-^src/.*\.jl$
 ^\.editorconfig$
 ^\.env$
 ^\.env.*$
@@ -51,6 +49,7 @@
 ^inst/extdata/ext$
 ^inst/extdata/int$
 ^inst/extdata/tmp$
+^inst/extdata/README\.md$
 ^inst/rcon$
 ^Jenkinsfile.*$
 ^LICENSE$
@@ -101,6 +100,10 @@
 ^script\.R$
 ^setup\.cfg$
 ^setup\.py$
+^src/.*\.jl$
+^src/.*\.py$
+^src/dve$
+^src/vce$
 ^src/\.clang-format$
 ^src/\.ycm_extra_conf\.pyc?$
 ^TAGS$

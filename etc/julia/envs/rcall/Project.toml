@@ -1,7 +1,17 @@
 [deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
+DuckDB = "d2f5444f-75bc-4fdf-ac35-56f514c445e1"
 Dve = "bf600719-03fc-4660-bed4-7402f139157a"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
+JuliaWorkspaces = "e554591c-7f10-434f-9f27-2097f62a04fd"
+LanguageServer = "2b0e0bc5-e4fd-59b4-8912-456d1b03d8d7"
+Pandas = "eadc2687-ae89-51f9-a5d9-86b5a6373a9c"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [sources]
 Dve = {path = "../../../.."}

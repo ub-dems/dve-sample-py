@@ -73,14 +73,4 @@ Encoding: UTF-8
 LazyData: yes
 Roxygen: list(markdown = TRUE)
 Config/build/copy-method: link
-Collate: 
-    'RcppExports.R'
-    'dummy-fun.R'
-    'dummy-path.R'
-    'dummy-proc.R'
-    'dvesimpler-package.r'
-    'ioinit.R'
-    'iologs.R'
-    'iopath.R'
-    'ioutils.R'
 Config/roxygen2/version: 8.1.1
