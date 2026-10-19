@@ -67,6 +67,7 @@ set -a
 : "${JULIA_URL:=https://julialang-s3.julialang.org}"
 : "${JULIA_VERSION:=${X_JU_JULIA_VERSION:-latest}}"
 : "${JULIA_CTL:=./etc/julia/juliactl.jl}"
+: "${JULIA_RCALL_ENV:=./etc/julia/envs/rcall}"
 # ------------------------------------------------------
 
 : ${PYTHON_VERSION=${Y_PY_PYTHON_VERSION:-'3.14'}}
@@ -1383,17 +1384,66 @@ do_py_ijulia_reg() {
 
       (command -v julia) &> /dev/null && \
 
-          julia -e '
-          using Pkg
-          # Ensure IJulia is installed in the global/default environment
-          Pkg.add("IJulia"; io=devnull)
-          # Force rebuild to link the kernelspec to the $JUPYTER path
-          Pkg.build("IJulia")
-          '
+          # julia -e '
+          # using Pkg
+          # # Ensure IJulia is installed in the global/default environment
+          # Pkg.add("IJulia"; io=devnull)
+          # # Force rebuild to link the kernelspec to the $JUPYTER path
+          # Pkg.build("IJulia")
+          # '
+          
+          julia_project="$(dirname "$(realpath ".")")"
+      
+          julia --project \
+                -e "
+using IJulia;
+IJulia.installkernel(
+    \"Julia—Project\",
+    \"--project=$julia_project\",
+)"
+          
+          # TODO(julia) - add support for multiple external projects
 
     )
 
     log "<(do_py_ijulia):" "py - ijulia install,  done."
+
+}
+
+do_py_ijulia_rcall_reg() {
+
+    log ">(do_py_ijulia_rcall):" "py - ijulia(rcall) install, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      # @see: https://github.com/IRkernel/IRkernel
+
+      (command -v julia) &> /dev/null && \
+
+          # julia -e '
+          # using Pkg
+          # # Ensure IJulia is installed in the global/default environment
+          # Pkg.add("IJulia"; io=devnull)
+          # # Force rebuild to link the kernelspec to the $JUPYTER path
+          # Pkg.build("IJulia")
+          # '
+          
+          julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
+      
+          julia --project="$JULIA_RCALL_ENV" \
+                -e "
+using IJulia;
+IJulia.installkernel(
+    \"Julia—RCall\",
+    \"--project=$julia_project\",
+)"
+
+
+    )
+
+    log "<(do_py_ijulia_rcall):" "py - ijulia(rcall) install,  done."
 
 }
 
@@ -2041,12 +2091,14 @@ do_ju_lock() {
 
     rc_ju_lock=0
 
+    juliactl="$(realpath "$JULIA_CTL")"
+
     if [ ! -f './Project.toml' ]; then
         info ">(do_ju_lock):" "ju - venv undefined: Project.toml not found, skip ..."
     elif [ -f './Manifest.toml' ]; then
         info ">(do_ju_lock):" "ju - lock defined: Manifest.toml found, skip ..."
-    elif [ ! -x "$JULIA_CTL" ]; then
-        warn ">(do_ju_lock):" "ju - juliactl missing: $JULIA_CTL not found, skip ..."
+    elif [ ! -x "$juliactl" ]; then
+        warn ">(do_ju_lock):" "ju - juliactl missing: $juliactl not found, skip ..."
         rc_ju_lock=2
     else
         # run in venv activated subshell
@@ -2055,7 +2107,9 @@ do_ju_lock() {
           export JULIA_PYTHONCALL_EXE='python'
           export JULIA_CONDAPKG_BACKEND='Null'
 
-          "$JULIA_CTL" lock ; rc_ju_lock=$?
+          info "+(do_ju_lock):" "ju - juliactl lock for ./Project.toml ..."
+          
+          "$juliactl" lock ; rc_ju_lock=$?
 
           case "$rc_ju_lock" in
               0) info "juliactl sync -- (rc: $?) -- $(ls -l Manifest.toml)" ;;
@@ -2077,12 +2131,14 @@ do_ju_sync() {
 
     rc_ju_sync=0
 
+    juliactl="$(realpath "$JULIA_CTL")"
+
     if [ ! -f './Project.toml' ]; then
         info ">(do_ju_sync):" "ju - venv undefined: Project.toml not found, skip ..."
     elif [ ! -f './Manifest.toml' ]; then
         warn ">(do_ju_sync):" "ju - sync defined: Manifest.toml not found, skip ..."
-    elif [ ! -x "$JULIA_CTL" ]; then
-        warn ">(do_ju_sync):" "ju - juliactl missing: $JULIA_CTL not found, skip ..."
+    elif [ ! -x "$juliactl" ]; then
+        warn ">(do_ju_sync):" "ju - juliactl missing: $juliactl not found, skip ..."
         rc_ju_sync=2
     else
         # run in venv activated subshell
@@ -2091,7 +2147,9 @@ do_ju_sync() {
           export JULIA_PYTHONCALL_EXE='python'
           export JULIA_CONDAPKG_BACKEND='Null'
 
-          "$JULIA_CTL" sync ; rc_ju_sync=$?
+          info "+(do_ju_sync):" "ju - juliactl sync for ./Project.toml ..."
+          
+          "$juliactl" sync ; rc_ju_sync=$?
 
           case "$rc_ju_sync" in
               0) info "juliactl sync -- (rc: $?) -- $(ls -l Manifest.toml)" ;;
@@ -2104,6 +2162,91 @@ do_ju_sync() {
     log "<(do_ju_sync):" "ju - sync,  done."
 
     return $rc_ju_sync
+
+
+}
+
+do_ju_rcall_lock() {
+
+    log ">(do_ju_rcall_lock):" "ju - rcall lock, ..."
+
+    rc_ju_rcall_lock=0
+
+    juliactl="$(realpath "$JULIA_CTL")"
+
+    if [ ! -f "$JULIA_RCALL_ENV/Project.toml" ]; then
+        info ">(do_ju_rcall_lock):" "ju - venv undefined: $JULIA_RCALL_ENV/Project.toml not found, skip ..."
+    elif [ -f "$JULIA_RCALL_ENV/Manifest.toml" ]; then
+        info ">(do_ju_rcall_lock):" "ju - lock defined: $JULIA_RCALL_ENV/Manifest.toml found, skip ..."
+    elif [ ! -x "$juliactl" ]; then
+        warn ">(do_ju_rcall_lock):" "ju - juliactl missing: $juliactl not found, skip ..."
+        rc_ju_rcall_lock=2
+    else
+        # run in venv activated subshell
+
+        ( activate
+          export JULIA_PYTHONCALL_EXE='python'
+          export JULIA_CONDAPKG_BACKEND='Null'
+
+          info "+(do_ju_rcall_lock):" "ju - juliactl lock for $JULIA_RCALL_ENV/Project.toml ..."
+          
+          (  cd "$JULIA_RCALL_ENV" && \
+              "$juliactl" lock ; rc_ju_rcall_lock=$?
+          )
+
+          case "$rc_ju_rcall_lock" in
+              0) info "juliactl(rcall) sync -- (rc: $?) -- $(ls -l Manifest.toml)" ;;
+              *) error "juliactl(rcall) sync -- (rc: $?) -- $(ls -l Manifest.toml)" ;;
+          esac
+
+        )
+    fi
+
+    log "<(do_ju_rcall_lock):" "ju - rcall lock,  done."
+
+    return $rc_ju_rcall_lock
+
+}
+
+do_ju_rcall_sync() {
+
+    log ">(do_ju_rcall_sync):" "ju - sync, ..."
+
+    rc_ju_rcall_sync=0
+
+    juliactl="$(realpath "$JULIA_CTL")"
+
+    if [ ! -f "$JULIA_RCALL_ENV/Project.toml" ]; then
+        info ">(do_ju_rcall_sync):" "ju - venv undefined: $JULIA_RCALL_ENV/Project.toml not found, skip ..."
+    elif [ ! -f "$JULIA_RCALL_ENV/Manifest.toml" ]; then
+        warn ">(do_ju_rcall_sync):" "ju - sync defined: $JULIA_RCALL_ENV/Manifest.toml not found, skip ..."
+    elif [ ! -x "$juliactl" ]; then
+        warn ">(do_ju_rcall_sync):" "ju - juliactl missing: $juliactl not found, skip ..."
+        rc_ju_rcall_sync=2
+    else
+        # run in venv activated subshell
+
+        ( activate
+          export JULIA_PYTHONCALL_EXE='python'
+          export JULIA_CONDAPKG_BACKEND='Null'
+
+          info "+(do_ju_rcall_sync):" "ju - juliactl sync for $JULIA_RCALL_ENV/Project.toml ..."
+          
+          (  cd "$JULIA_RCALL_ENV" && \
+              "$juliactl" sync ; rc_ju_rcall_sync=$?
+          )
+
+          case "$rc_ju_rcall_sync" in
+              0) info "juliactl(rcall) sync -- (rc: $?) -- $(ls -l $JULIA_RCALL_ENV/Manifest.toml)" ;;
+              *) error "juliactl(rcall) sync -- (rc: $?) -- $(ls -l $JULIA_RCALL_ENV/Manifest.toml)" ;;
+          esac
+
+        )
+    fi
+
+    log "<(do_ju_rcall_sync):" "ju - rcall sync,  done."
+
+    return $rc_ju_rcall_sync
 
 
 }
@@ -2147,7 +2290,7 @@ do_ju_connector() {
       sed -i '/JULIA_PROJECT=/d' \
           ~/.Renviron
 
-      julia_project="$(dirname "$(realpath "./etc/julia/envs/rcall")")"
+      julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
 
       case "$julia_project" in
           "$HOME"/*)
@@ -2216,6 +2359,43 @@ do_ju_show() {
     )
 
     log "<(do_ju_show):" "py - show config, done."
+
+}
+
+do_ju_rcall_show() {
+
+    log ">(do_ju_rcall_show):" "ju - show config, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+      export JULIA_PYTHONCALL_EXE='python'
+      export JULIA_CONDAPKG_BACKEND='Null'
+
+      which julia
+      julia --version
+
+      # Step 1: Capture the path with clean nested double quotes
+      raw_julia_bindir="$(dirname "$(realpath "$(command -v julia)")")"
+
+      # Step 2: Replace leading $HOME with ~ (using standard parameter expansion)
+      julia_bindir="${raw_julia_bindir/#"$HOME"/~}"
+
+      # julia_bindir="$(dirname "$(realpath "$(command -v julia)")")" | \
+      #                         sed "s|^$HOME|~|"
+
+      echo "JULIA_BINDIR=$julia_bindir"
+      env | grep ^JULIA | sort
+
+      julia --project="$JULIA_RCALL_ENV" -e 'using Pkg;Pkg.status()'
+
+      # if [ -f "etc/julia/envs/rcall/Project.toml" ]; then
+      #     julia --project='etc/julia/envs/rcall' -e 'using Pkg;Pkg.status()'
+      # fi
+
+    )
+
+    log "<(do_ju_rcall_show):" "py - show config, done."
 
 }
 
@@ -2345,6 +2525,7 @@ parse_args_run() {
     RUN_JU_RESET=0
     RUN_JU_VENV=0
     RUN_JU_SYNC=0
+    RUN_JU_BIND=0
     RUN_JU_SHOW=0
     RUN_JU_JUPYTER=0
 
@@ -2429,6 +2610,7 @@ parse_args_run() {
                 RUN_JU_BOOT=1
                 RUN_JU_VENV=1
                 RUN_JU_SYNC=1
+                RUN_JU_BIND=1
                 RUN_JU_SHOW=1
                 RUN_JU_JUPYTER=1
                 RUN_RE_SETUP=1
@@ -2618,6 +2800,7 @@ parse_args_run() {
             RUN_JU_RESET=0
             RUN_JU_VENV=0
             RUN_JU_SYNC=0
+            RUN_JU_BIND=0
             RUN_JU_SHOW=0
             RUN_JU_JUPYTER=0
             ;;
@@ -2670,6 +2853,7 @@ parse_args_run() {
     env_defined RUN_JU_SYNC
     env_defined RUN_JU_VENV
     env_defined RUN_JU_SHOW
+    env_defined RUN_JU_BIND
     env_defined RUN_JU_JUPYTER
 
     env_defined RUN_JS_CODE
@@ -2781,12 +2965,17 @@ main_run() {
     fi
 
     if [ "$RUN_JU_BIND" = '1' ]; then
+        do_ju_rcall_lock "$@"
+        do_ju_rcall_sync "$@"
         do_ju_connector "$@"
         rc_exit $?
     fi
 
     if [ "$RUN_JU_SHOW" = '1' ]; then
         do_ju_show "$@"
+        if [ "$RUN_JU_BIND" = '1' ]; then
+            do_ju_rcall_show "$@"
+        fi
         rc_exit $?
     fi
 
@@ -2823,12 +3012,15 @@ main_run() {
     if [ "$RUN_PY_JUPYTER" = '1' ]; then
         do_py_jupyter_build "$@"
 
-        if [ "$RUN_RE_JUPYTER" = '1' ]; then
-            do_py_irkernel_reg "$@"
-        fi
-
         if [ "$RUN_JU_JUPYTER" = '1' ]; then
             do_py_ijulia_reg "$@"
+            if [ "$RUN_JU_BIND" = '1' ]; then
+                do_py_ijulia_rcall_reg "$@"
+            fi
+        fi
+
+        if [ "$RUN_RE_JUPYTER" = '1' ]; then
+            do_py_irkernel_reg "$@"
         fi
 
         do_py_jupyter_show "$@"

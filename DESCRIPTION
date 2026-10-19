@@ -46,6 +46,7 @@ Suggests:
     ggraph,
     igraph,
     JuliaCall,
+    JuliaConnectoR,
     logging,
     languageserver,
     gitcreds,
@@ -74,3 +75,13 @@ LazyData: yes
 Roxygen: list(markdown = TRUE)
 Config/build/copy-method: link
 Config/roxygen2/version: 8.1.1
+Collate: 
+    'RcppExports.R'
+    'dummy-fun.R'
+    'dummy-path.R'
+    'dummy-proc.R'
+    'dvesimpler-package.r'
+    'ioinit.R'
+    'iologs.R'
+    'iopath.R'
+    'ioutils.R'
