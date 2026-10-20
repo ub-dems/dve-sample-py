@@ -143,7 +143,7 @@ ENV UV_ENV_FILE=$Y_ENV_FILE
 
 # julia support
 
-ENV JULIA_ROOT=/opt/julia
+#ENV JULIA_ROOT=/opt/julia
 ENV JULIA_PYTHONCALL_EXE=python
 ENV JULIA_CONDAPKG_BACKEND=Null
 
@@ -193,7 +193,7 @@ RUN /rocker_scripts/install_ubs-rs_rust.sh
 RUN /rocker_scripts/install_ubs-js_node.sh
 RUN /rocker_scripts/install_ubs-js_code.sh
 
-RUN /rocker_scripts/install_ubs-ju_julia.sh
+# RUN /rocker_scripts/install_ubs-ju_julia.sh
 
 # RUN /rocker_scripts/install_ubs-py_base.sh
 # RUN /rocker_scripts/install_ubs-py_system.sh

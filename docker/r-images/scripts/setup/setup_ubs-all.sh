@@ -62,8 +62,8 @@ set -a
 : ${X_ENV_STRICT:='.env.strict'}
 
 # ------------------------------------------------------
-: "${JULIA_ROOT:=~/.local/share/julia}"
-: "${JULIA_HOME:=$JULIA_ROOT}"
+: "${JULIA_ROOT:=~/.julia}"
+# : "${JULIA_HOME:=$JULIA_ROOT}/bin"
 : "${JULIA_URL:=https://julialang-s3.julialang.org}"
 : "${JULIA_VERSION:=${X_JU_JULIA_VERSION:-latest}}"
 : "${JULIA_CTL:=./etc/julia/juliactl.jl}"
@@ -1282,198 +1282,6 @@ EOR
 
 }
 
-
-do_py_jupyter_build() {
-
-    log ">(do_py_jupyter):" "py - jupyter prepare, ..."
-
-    # run in venv activated subshell
-
-    ( activate
-
-      [ -f ~/.jupyter/jupyter_server_config.py ] || \
-          jupyter server --generate-config
-
-      jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
-
-
-      log "-(do_py_jupyter):" "py - jupyter node check, ..."
-      set -x
-      which -a node
-      node --version
-      which -a jlpm
-      jlpm --version
-      set +x
-      log "-(do_py_jupyter):" "py - jupyter node check (node version: $(node --version)), don"
-
-      if [ ! -f ./.yarnrc.yml ] ; then
-          warn "jupyter ./.yarnrc.yml not found, ..."
-          echo "nodeLinker: node-modules"  > ./.yarnrc.yml
-          info "jupyter ./.yarnrc.yml created"
-      fi
-
-      if [ ! -f ./package.json ] ; then
-
-          warn "jupyter ./package.json not found, ..."
-
-          jlpm init
-
-          jlpm add --dev  \
-               bash-language-server \
-               dockerfile-language-server-nodejs \
-               pyright \
-               sql-language-server \
-               typescript-language-server \
-               vscode-langservers-extracted \
-               yaml-language-server
-
-          info "jupyter ./package.json created"
-      fi
-
-      if [ ! -f ./yarn.lock ] ; then
-
-          warn "jupyter ./yarn.lock not found, ..."
-
-          jlpm up
-
-          info "jupyter ./yarn.lock created"
-      fi
-
-      jlpm install
-
-      jupyter lab clean --all
-      jupyter lab build
-      # jupyter lab build --debug
-
-
-    )
-
-    log "<(do_py_jupyter):" "py - jupyter prepare,  done."
-
-}
-
-do_py_irkernel_reg() {
-
-    log ">(do_py_irkernel):" "py - irkernel install, ..."
-
-    # run in venv activated subshell
-
-    ( activate
-
-      # @see: https://github.com/IRkernel/IRkernel
-
-      R --quiet   -e 'IRkernel::installspec()'
-
-      # jupyter labextension install @techrah/text-shortcuts  # for RStudio’s shortcuts
-
-    )
-
-    log "<(do_py_irkernel):" "py - irkernel install,  done."
-
-}
-
-do_py_ijulia_reg() {
-
-    log ">(do_py_ijulia):" "py - ijulia install, ..."
-
-    # run in venv activated subshell
-
-    ( activate
-
-      # @see: https://github.com/IRkernel/IRkernel
-
-      (command -v julia) &> /dev/null && \
-
-          # julia -e '
-          # using Pkg
-          # # Ensure IJulia is installed in the global/default environment
-          # Pkg.add("IJulia"; io=devnull)
-          # # Force rebuild to link the kernelspec to the $JUPYTER path
-          # Pkg.build("IJulia")
-          # '
-          
-          julia_project="$(dirname "$(realpath ".")")"
-      
-          julia --project \
-                -e "
-using IJulia;
-IJulia.installkernel(
-    \"Julia—Project\",
-    \"--project=$julia_project\",
-)"
-          
-          # TODO(julia) - add support for multiple external projects
-
-    )
-
-    log "<(do_py_ijulia):" "py - ijulia install,  done."
-
-}
-
-do_py_ijulia_rcall_reg() {
-
-    log ">(do_py_ijulia_rcall):" "py - ijulia(rcall) install, ..."
-
-    # run in venv activated subshell
-
-    ( activate
-
-      # @see: https://github.com/IRkernel/IRkernel
-
-      (command -v julia) &> /dev/null && \
-
-          # julia -e '
-          # using Pkg
-          # # Ensure IJulia is installed in the global/default environment
-          # Pkg.add("IJulia"; io=devnull)
-          # # Force rebuild to link the kernelspec to the $JUPYTER path
-          # Pkg.build("IJulia")
-          # '
-          
-          julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
-      
-          julia --project="$JULIA_RCALL_ENV" \
-                -e "
-using IJulia;
-IJulia.installkernel(
-    \"Julia—RCall\",
-    \"--project=$julia_project\",
-)"
-
-
-    )
-
-    log "<(do_py_ijulia_rcall):" "py - ijulia(rcall) install,  done."
-
-}
-
-
-
-do_py_jupyter_show() {
-
-    log ">(do_py_jupyter_show):" "py - jupyter show, ..."
-
-    # run in venv activated subshell
-
-    ( activate
-
-      which python
-      which jupyter
-
-      python --version
-      jupyter --version
-
-      jupyter --paths
-
-      jupyter labextension list
-      jupyter kernelspec list
-
-    )
-
-    log "<(do_py_jupyter_show):" "py - jupyter show,  done."
-
-}
-
 do_py_show() {
 
     log ">(do_py_show):" "py - show config, ..."
@@ -1530,6 +1338,200 @@ do_py_show() {
     )
 
     log "<(do_py_show):" "py - show config, done."
+
+}
+
+# ////////////////////////////////////////////////////////////////////////
+
+
+do_pj_jupyter_build() {
+
+    log ">(do_pj_jupyter):" "pj - jupyter prepare, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      [ -f ~/.jupyter/jupyter_server_config.py ] || \
+          jupyter server --generate-config
+
+      jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+
+
+      log "-(do_pj_jupyter):" "pj - jupyter node check, ..."
+      set -x
+      which -a node
+      node --version
+      which -a jlpm
+      jlpm --version
+      set +x
+      log "-(do_pj_jupyter):" "pj - jupyter node check (node version: $(node --version)), don"
+
+      if [ ! -f ./.yarnrc.yml ] ; then
+          warn "jupyter ./.yarnrc.yml not found, ..."
+          echo "nodeLinker: node-modules"  > ./.yarnrc.yml
+          info "jupyter ./.yarnrc.yml created"
+      fi
+
+      if [ ! -f ./package.json ] ; then
+
+          warn "jupyter ./package.json not found, ..."
+
+          jlpm init
+
+          jlpm add --dev  \
+               bash-language-server \
+               dockerfile-language-server-nodejs \
+               pyright \
+               sql-language-server \
+               typescript-language-server \
+               vscode-langservers-extracted \
+               yaml-language-server
+
+          info "jupyter ./package.json created"
+      fi
+
+      if [ ! -f ./yarn.lock ] ; then
+
+          warn "jupyter ./yarn.lock not found, ..."
+
+          jlpm up
+
+          info "jupyter ./yarn.lock created"
+      fi
+
+      jlpm install
+
+      jupyter lab clean --all
+      jupyter lab build
+      # jupyter lab build --debug
+
+
+    )
+
+    log "<(do_pj_jupyter):" "pj - jupyter prepare,  done."
+
+}
+
+do_pj_irkernel_reg() {
+
+    log ">(do_pj_irkernel):" "pj - irkernel install, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      # @see: https://github.com/IRkernel/IRkernel
+
+      R --quiet   -e 'IRkernel::installspec()'
+
+      # jupyter labextension install @techrah/text-shortcuts  # for RStudio’s shortcuts
+
+    )
+
+    log "<(do_pj_irkernel):" "pj - irkernel install,  done."
+
+}
+
+do_pj_ijulia_reg() {
+
+    log ">(do_pj_ijulia):" "pj - ijulia install, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      # @see: https://github.com/IRkernel/IRkernel
+
+      (command -v julia) &> /dev/null && \
+
+          # julia -e '
+          # using Pkg
+          # # Ensure IJulia is installed in the global/default environment
+          # Pkg.add("IJulia"; io=devnull)
+          # # Force rebuild to link the kernelspec to the $JUPYTER path
+          # Pkg.build("IJulia")
+          # '
+          
+          julia_project="$(dirname "$(realpath ".")")"
+      
+          julia --project \
+                -e "
+using IJulia;
+IJulia.installkernel(
+    \"Julia—Project\",
+    \"--project=$julia_project\",
+)"
+          
+          # TODO(julia) - add support for multiple external projects
+
+    )
+
+    log "<(do_pj_ijulia):" "pj - ijulia install,  done."
+
+}
+
+do_pj_ijulia_rcall_reg() {
+
+    log ">(do_pj_ijulia_rcall):" "pj - ijulia(rcall) install, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      # @see: https://github.com/IRkernel/IRkernel
+
+      (command -v julia) &> /dev/null && \
+
+          # julia -e '
+          # using Pkg
+          # # Ensure IJulia is installed in the global/default environment
+          # Pkg.add("IJulia"; io=devnull)
+          # # Force rebuild to link the kernelspec to the $JUPYTER path
+          # Pkg.build("IJulia")
+          # '
+          
+          julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
+      
+          julia --project="$JULIA_RCALL_ENV" \
+                -e "
+using IJulia;
+IJulia.installkernel(
+    \"Julia—RCall\",
+    \"--project=$julia_project\",
+)"
+
+
+    )
+
+    log "<(do_pj_ijulia_rcall):" "pj - ijulia(rcall) install,  done."
+
+}
+
+
+
+do_pj_jupyter_show() {
+
+    log ">(do_pj_jupyter_show):" "pj - jupyter show, ..."
+
+    # run in venv activated subshell
+
+    ( activate
+
+      which python
+      which jupyter
+
+      python --version
+      jupyter --version
+
+      jupyter --paths
+
+      jupyter labextension list
+      jupyter kernelspec list
+
+    )
+
+    log "<(do_pj_jupyter_show):" "pj - jupyter show,  done."
 
 }
 
@@ -1937,8 +1939,6 @@ do_ju_remove() {
     log ">(do_ju_remove):" "ju - uninstall julia, ..."
 
 
-    tar zxf "julia-${JULIA_VERSION}-linux-${ARCH_LONG}.tar.gz" -C "${JULIA_ROOT}" --strip-components 1
-    rm -f "julia-${JULIA_VERSION}-linux-${ARCH_LONG}.tar.gz"
     [ -L ~/.local/bin/julia ] && rm -f ~/.local/bin/julia
     
     if [ -d "${JULIA_ROOT}" ]; then
@@ -1953,13 +1953,30 @@ do_ju_remove() {
 
 }
 
+do_ju_dots() {
+
+    log ">(do_ju_dots):" "ju - dots remove, ..."
+
+    set -x
+
+    [ -d ~/.julia ] && rm -rf ~/.julia
+
+    set +x
+
+    log "<(do_ju_dots):" "ju - dots remove,  done."
+
+}
+
+
 do_ju_cache() {
 
     log ">(do_ju_cache):" "ju - cache remove, ..."
 
     set -x
 
-    [ -d ~/.julia ] && rm -rf ./.julia
+    [ -d ~/.julia/compiled ] && rm -rf ./.julia/compiled
+    # [ -d ~/.julia/artifacts ] && rm -rf ./.julia/artifacts
+    # [ -d ~/.julia/packages ] && rm -rf ./.julia/packages
 
     set +x
 
@@ -1969,7 +1986,7 @@ do_ju_cache() {
 
 
 
-do_ju_boot() {
+ex_ju_boot() {
 
     log ">(do_ju_boot):" "ju - Julia install, ..."
 
@@ -2033,6 +2050,135 @@ EOF
 
 }
 
+
+do_ju_boot() {
+
+    log ">(do_ju_boot):" "py - boot, ..."
+
+    if (command -v juliaup) > /dev/null; then
+        log ":(do_ju_boot):" "juliaup - found, skip."
+    else
+        log ":(do_ju_boot):" "juliaup - not found => install juliaup, ..."
+
+        curl -fsSL https://install.julialang.org | sh -s -- \
+           --yes \
+           --add-to-path=no \
+           --startup-selfupdate=1
+
+        # curl -fsSL https://install.julialang.org | sh -s -- \
+        #    --path "$JULIAUP_DEPOT_PATH" \
+        #    --yes \
+        #    --add-to-path=no \
+        #    --background-selfupdate=0 \
+        #    --startup-selfupdate=0
+        
+        log ":(do_ju_boot):" "juliaup - not found => install juliaup, done."
+    fi
+
+    log ":(do_ju_boot):" "juliaup - config path, ..."
+    export PATH=~/.juliaup/bin:$PATH
+
+    for f in "$HOME/.profile" "$HOME/.bashrc"; do
+        if [ ! -f "$f" ]; then
+            warn "?(do_ju_boot):" "sh - $f NOTFOUND, skip"
+        elif grep '.juliaup' "$f" &>/dev/null; then
+            info "-(do_ju_boot):" "sh - $f already configured, skip"
+        else
+            echo '[ -d ~/.juliaup/bin ] && export PATH=~/.juliaup/bin:$PATH' >> "$f"
+            info "-(do_ju_boot):" "sh - '~/.juliaup/bin' added to PATH in enabled in $f."
+        fi
+    done    
+    log ":(do_ju_boot):" "juliaup - config path, done."
+    
+    which juliaup   || false
+    juliaup --version    || false
+    
+    log ":(do_ju_boot):" "juliaup - found => self update, ..."
+
+    juliaup self update
+
+    log ":(do_ju_boot):" "juliaup - found => self update, done."
+
+    which juliaup   || false
+    juliaup --version    || false
+    
+    log ":(do_ju_boot):" "juliaup - found => config, ..."
+    
+    juliaup config manifestversiondetect true
+
+    log ":(do_ju_boot):" "juliaup - found => config, done."
+
+    : ${JULIA_CHANNEL:=${JULIAUP_CHANNEL:-release}}
+
+    if [ -f .juliaup-channel ]; then
+        JULIA_CHANNEL="$(cat .juliaup-channel)"
+        export JULIA_CHANNEL
+    fi
+
+    log ":(do_ju_boot):" "juliaup - channel=${JULIA_CHANNEL}"
+    
+    if [ "${JULIA_CHANNEL}" != "release" ]; then
+        juliaup add "${JULIA_CHANNEL}"
+    else
+        juliaup add "${JULIA_CHANNEL}"
+    fi
+    juliaup default "${JULIA_CHANNEL}"
+    juliaup list | grep -e "${JULIA_CHANNEL}"
+    juliaup status
+
+    if false; then # check julia
+        log ":(do_ju_boot):" "juliaup - julia found, skip."
+        # uv python install --force --upgrade
+    else
+        log ":(do_ju_boot):" "juliaup - install => update channels, ..."
+        
+        juliaup update
+
+        juliaup status
+        
+        log ":(do_ju_boot):" "juliaup - install => update channels, done."
+    fi
+
+    which julia               || false
+    realpath $(which julia)   || false
+    julia --version           || false
+
+    if false; then # check uv tools
+        log ":(do_ju_boot):" "julia - tools found, skip."
+        # uv tool install --force --upgrade
+    else
+        log ":(do_ju_boot):" "julia - tool not found => install tools, ..."
+
+        julia -e '
+using Pkg;
+
+Pkg.add("IJulia");
+Pkg.add("LanguageServer");
+Pkg.add("JuliaWorkspaces");
+Pkg.build("IJulia");
+Pkg.build("LanguageServer");
+Pkg.build("JuliaWorkspaces");
+
+'
+
+
+        log ":(do_ju_boot):" "julia - tool not found => install tools, done."
+    fi
+
+        julia -e "
+using Pkg;
+
+Pkg.status()
+
+"
+
+    log "<(do_ju_boot):" "ju - boot, done."
+
+}
+
+
+
+
 do_ju_venv() {
 
     log ">(do_ju_venv):" "ju - venv check, ..."
@@ -2050,6 +2196,22 @@ do_ju_venv() {
 }
 
 
+do_ju_rcall_reset() {
+
+    log ">(do_ju_reset):" "ju - unlock(rcall), ..."
+
+    if [ -f "${JULIA_RCALL_ENV}/Manifest.toml" ]; then
+        rm "${JULIA_RCALL_ENV}/Manifest.toml"
+    else
+        warn "${JULIA_RCALL_ENV}/Manifest.toml not found, skip"
+    fi
+
+    # do_ju_remove
+
+    log "<(do_ju_reset):" "ju - unlock(rcall),  done."
+
+}
+
 do_ju_reset() {
 
     log ">(do_ju_reset):" "ju - unlock, ..."
@@ -2060,6 +2222,8 @@ do_ju_reset() {
         warn "./Manifest.toml not found, skip"
     fi
 
+    do_ju_rcall_reset
+    
     # do_ju_remove
 
     log "<(do_ju_reset):" "ju - unlock,  done."
@@ -2270,6 +2434,8 @@ do_ju_connector() {
 
       sed -i '/JULIA_BINDIR=/d' \
           ~/.Renviron
+      sed -i '/JULIA_HOME=/d' \
+          ~/.Renviron
 
       julia_bindir="$(dirname "$(realpath "$(command -v julia)")")"
 
@@ -2277,26 +2443,29 @@ do_ju_connector() {
           "$HOME"/*)
               # path inside $HOME -> make it HOME-relative, expanded by R at startup
               julia_bindir_rel="${julia_bindir#"$HOME"/}"
-              julia_bindir_line="JULIA_BINDIR=\${HOME}/${julia_bindir_rel}"
+              julia_bindir_line="JULIA_BINDIR=\"\${HOME}/${julia_bindir_rel}\""
+              julia_home_line="JULIA_HOME=\"\${HOME}/${julia_bindir_rel}\""
               ;;
           *)
               # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
               julia_bindir_line="JULIA_BINDIR=${julia_bindir}"
+              julia_home_line="JULIA_HOME=${julia_bindir}"
               ;;
       esac
 
       printf '%s\n' "$julia_bindir_line" >> ~/.Renviron
+      printf '%s\n' "$julia_home_line" >> ~/.Renviron
 
       sed -i '/JULIA_PROJECT=/d' \
           ~/.Renviron
 
-      julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
+      julia_project="$(realpath "$JULIA_RCALL_ENV")"
 
       case "$julia_project" in
           "$HOME"/*)
               # path inside $HOME -> make it HOME-relative, expanded by R at startup
               julia_project_rel="${julia_project#"$HOME"/}"
-              julia_project_line="JULIA_PROJECT=\${HOME}/${julia_project_rel}"
+              julia_project_line="JULIA_PROJECT=\"\${HOME}/${julia_project_rel}\""
               ;;
           *)
               # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
@@ -2507,7 +2676,7 @@ parse_args_run() {
     RUN_PY_RESET=0
     RUN_PY_VENV=0
     RUN_PY_SYNC=0
-    RUN_PY_JUPYTER=0
+    RUN_PJ_JUPYTER=0
     RUN_PY_SHOW=0
     RUN_JS_NVM=0
     RUN_JS_CODE=0
@@ -2559,7 +2728,7 @@ parse_args_run() {
                 RUN_PY_BOOT=1
                 RUN_PY_VENV=1
                 RUN_PY_SYNC=1
-                RUN_PY_JUPYTER=1
+                RUN_PJ_JUPYTER=1
                 RUN_PY_SHOW=1
                 RUN_JU_BOOT=1
                 RUN_JU_VENV=1
@@ -2603,7 +2772,7 @@ parse_args_run() {
                 RUN_PY_VENV=1
                 RUN_PY_SYNC=1
                 RUN_PY_BIND=1
-                RUN_PY_JUPYTER=1
+                RUN_PJ_JUPYTER=1
                 RUN_PY_SHOW=1
                 RUN_JS_CODE=1
                 RUN_JS_NODE=1
@@ -3009,21 +3178,21 @@ main_run() {
         rc_exit $?
     fi
 
-    if [ "$RUN_PY_JUPYTER" = '1' ]; then
-        do_py_jupyter_build "$@"
+    if [ "$RUN_PJ_JUPYTER" = '1' ]; then
+        do_pj_jupyter_build "$@"
 
         if [ "$RUN_JU_JUPYTER" = '1' ]; then
-            do_py_ijulia_reg "$@"
+            do_pj_ijulia_reg "$@"
             if [ "$RUN_JU_BIND" = '1' ]; then
-                do_py_ijulia_rcall_reg "$@"
+                do_pj_ijulia_rcall_reg "$@"
             fi
         fi
 
         if [ "$RUN_RE_JUPYTER" = '1' ]; then
-            do_py_irkernel_reg "$@"
+            do_pj_irkernel_reg "$@"
         fi
 
-        do_py_jupyter_show "$@"
+        do_pj_jupyter_show "$@"
         rc_exit $?
     fi
 

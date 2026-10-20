@@ -68,20 +68,11 @@ Suggests:
     RcppEigen
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel, RcppGSL
 SystemRequirements: GNU Scientific Library (GSL) (>= 2.0)
+Remotes: JuliaInterop/JuliaCall
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
 LazyData: yes
 Roxygen: list(markdown = TRUE)
 Config/build/copy-method: link
-Config/roxygen2/version: 8.1.1
-Collate: 
-    'RcppExports.R'
-    'dummy-fun.R'
-    'dummy-path.R'
-    'dummy-proc.R'
-    'dvesimpler-package.r'
-    'ioinit.R'
-    'iologs.R'
-    'iopath.R'
-    'ioutils.R'
+Config/roxygen2/version: 8.1.0

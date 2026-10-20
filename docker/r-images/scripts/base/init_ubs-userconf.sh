@@ -376,11 +376,32 @@ function init_rstudio() {
 
 function init_r_ldconfig() {
 
+    [ "$Y_R_LD_CONFIG" = 1 ] || return 0
+    
     ls -l /etc/ld.so.conf.d
 
 
     printf '%s\n' /usr/local/lib/R/lib \
            > /etc/ld.so.conf.d/r-runtime.conf
+           
+    ldconfig
+
+    ldd /usr/local/lib/R/library/utils/libs/utils.so
+    
+    
+}
+
+function init_r_ldconfig() {
+
+    [ "$Y_RE_LD_CONFIG" = 1 ] || return 0
+    
+    [ ! -f /etc/ld.so.conf.d/r-runtime.conf ] || return 0
+    
+    ls -l /etc/ld.so.conf.d
+
+
+    printf '%s\n' /usr/local/lib/R/lib \
+           >> /etc/ld.so.conf.d/r-runtime.conf
            
     ldconfig
 
@@ -401,6 +422,41 @@ function init_r() {
 }
 
 
+
+function init_ju_ldconfig() {
+
+    [ "$Y_JU_LD_CONFIG" = 1 ] || return 0
+    
+    [ ! -f /etc/ld.so.conf.d/julia-runtime.conf ] || return 0
+    
+    [ -n "${JULIA_ROOT}" ] || return 0
+
+    mkdir -p "${JULIA_ROOT}/lib"
+    
+    ls -l /etc/ld.so.conf.d
+
+    printf '%s\n' "${JULIA_ROOT}/lib" \
+           >> /etc/ld.so.conf.d/julia-runtime.conf
+    
+    # printf '%s\n' "${JULIA_ROOT}/lib/julia" \
+    #        >> /etc/ld.so.conf.d/julia-runtime.conf
+           
+    ldconfig
+
+    # ldd "${JULIA_ROOT}/lib/libjulia.so"
+    
+    
+}
+
+
+
+function init_julia() {
+    
+    [ "$Y_BASE_INIT_JULIA" = 1 ] || return 0
+    
+    init_ju_ldconfig
+    
+}
 
 
 function setenv_rehash() {
@@ -440,6 +496,7 @@ function main() {
 
     init_userconf
     init_profile
+    init_julia
     init_r
     # init_rstudio
     init_home

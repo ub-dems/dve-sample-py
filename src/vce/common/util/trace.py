@@ -119,7 +119,6 @@ class TraceCounter:
 
 
 class TraceFrame:
-    # ruff: noqa: PLR0913
     def __init__(self, name, owner, parent, ctx, logger, time_period, item_samples, verbose):
         self.start = timer()
         self.name = name
