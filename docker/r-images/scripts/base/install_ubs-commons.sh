@@ -246,6 +246,7 @@ function install_commons_sys() {
 	apt_install \
 		apt-file \
 		parallel \
+		lsof \
 		hwloc \
 		tasksel \
 		numactl \

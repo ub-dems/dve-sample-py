@@ -60,6 +60,7 @@ PY_RUN := ${UV} run
 SHELL := /bin/bash
 RSCRIPT := ${PY_RUN} Rscript
 #POETRY := poetry
+JULIA := ${PY_RUN} julia
 
 # ---(gpu)------------------------------------------------
 
@@ -93,7 +94,8 @@ start:
 test: # @HELP/base runs: `devtools::test()`
 test: init
 	${PY_RUN}  'pytest' || true
-	${RSCRIPT} -e 'devtools::test()'
+	command -v julia &> /dev/null && ${JULIA} --project=@. -e 'using Pkg; Pkg.test()'
+	command -v R &> /dev/null && ${RSCRIPT} -e 'devtools::test()'
 
 
 check: # @HELP/base runs: `devtools::check()`
@@ -103,9 +105,9 @@ check: init
 	@echo "+++ Running REUSE lint........"; $(UV) run reuse lint || true
 	@echo "+++ Running Pyright check....."; $(UV) run basedpyright || true
 	@echo "+++ Running Ruff check........"; $(UV) run ruff check || true
-	@echo "+++ Running renv::status......"; echo ${RSCRIPT} -e 'renv::status()'
-	@echo "+++ Running devtools::doc....."; echo ${RSCRIPT} -e 'devtools::document()'
-	@echo "+++ Running devtools::check..."; echo ${RSCRIPT} -e 'devtools::check()'
+	@command -v R &> /dev/null && echo "+++ Running renv::status......"; ${RSCRIPT} -e 'renv::status()'
+	@command -v R &> /dev/null && echo "+++ Running devtools::doc....."; ${RSCRIPT} -e 'devtools::document()'
+	@command -v R &> /dev/null && echo "+++ Running devtools::check..."; ${RSCRIPT} -e 'devtools::check()'
 	@echo "+++ }}} CHECK \\\\\\\\\ ";
 
 docs: # @HELP/base make: "man,readme,vignettes"  targets

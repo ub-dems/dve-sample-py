@@ -143,7 +143,8 @@ ENV UV_ENV_FILE=$Y_ENV_FILE
 
 # julia support
 
-#ENV JULIA_ROOT=/opt/julia
+ENV JULIAUP_ROOT=~/.juliaup
+ENV JULIA_ROOT=~/.julia
 ENV JULIA_PYTHONCALL_EXE=python
 ENV JULIA_CONDAPKG_BACKEND=Null
 
@@ -182,7 +183,7 @@ ENV X_LAB_OPTIONS=
 
 # xdg path
 
-ENV PATH=/root/.local/bin:${PATH}:${NODE_ROOT}/bin:${CARGO_HOME}/bin:${RUSTUP_HOME}/bin:
+ENV PATH=~/.local/bin:${PATH}:${JULIAUP_ROOT}/bin:${NODE_ROOT}/bin:${CARGO_HOME}/bin:${RUSTUP_HOME}/bin:
 
 
 # build calls

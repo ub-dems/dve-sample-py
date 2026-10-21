@@ -76,7 +76,11 @@ set -a
 # : ${UV_TOOL_BIN_DIR:="/usr/local/bin"}
 # : ${UV_PYTHON_INSTALL_DIR:="/opt/uv/python"}
 # : ${UV_CACHE_DIR:="/opt/uv/cache"}
+if [ -z "$container" ]; then
+: ${UV_PROJECT_ENVIRONMENT:=".venv"}
+else
 : ${UV_PROJECT_ENVIRONMENT:=".venv.cdk"}
+fi    
 : ${UV_PROJECT_ENVIRONMENT_EXT:=".venv"}
 : ${UV_ENV_FILE:=$X_ENV_FILE}
 : ${UV_NO_PROGRESS:="1"}
@@ -183,6 +187,10 @@ sl() {
     cat | sed 's/^/      %\t/' | sed 's/\t$//'
 }
 
+sl4() {
+    cat | sed 's/^/           %\t/' | sed 's/\t$//'
+}
+
 sl1() {
     cat | sed -e '1d' | sed 's/^/      %\t/' | sed 's/\t$//'
 }
@@ -265,6 +273,15 @@ $(echo "${LD_LIBRARY_PATH}" | tr ':' '\n' | sl)
 $(df -h | sl)
 
 
+  container:
+   environ:
+    mode: "${container}"
+    podman: |
+$( (which podman &>/dev/null && podman --version 2>&1   || echo NOOCIHOST) | sl)
+    images: |
+$( (which podman &>/dev/null && podman images 2>&1   || echo NOOCIIMAGES) | sl)
+
+
   gpu:
    environ:
     X_HAS_GPU: "${X_HAS_GPU}"
@@ -287,6 +304,11 @@ dump_extras_status() {
 ##
 # setup extra languge and tools: ${args}
 #
+
+  lang:
+   summary: |
+$( (./lab.sh --version) | sl)
+
 
   rust:
    environ:
@@ -343,6 +365,22 @@ $( (which julia  2>/dev/null || echo NOJULIA) | sl)
 $( (ls -l $(which julia  2>/dev/null) || echo NOJULIA) | sl)
      vers: |
 $( (which julia  &>/dev/null && julia --version || echo NOJULIA) | sl)
+   envs:
+     - none:
+         status: |
+$( (which julia  &>/dev/null && julia -e 'using Pkg; Pkg.status()' ) | sl4)
+         project: |
+$(find ~/.julia/environments -name Project.toml -exec ls -l {} \; | sl4)
+     - base:
+         status: |
+$( (which julia  &>/dev/null && julia --project=@. -e 'using Pkg; Pkg.status()' ) | sl4)
+         project: |
+$(ls -l Project.toml | sl4)
+     - rcall:
+         status: |
+$( (which julia  &>/dev/null && julia --project=etc/julia/envs/rcall -e 'using Pkg; Pkg.status()' ) | sl4)
+         project: |
+$(ls -l etc/julia/envs/rcall/*.toml | sl4)
 
 
 
@@ -2432,29 +2470,29 @@ do_ju_connector() {
       touch ~/.Rsession
       touch ~/.Renviron
 
-      sed -i '/JULIA_BINDIR=/d' \
-          ~/.Renviron
-      sed -i '/JULIA_HOME=/d' \
-          ~/.Renviron
+      # sed -i '/JULIA_BINDIR=/d' \
+      #     ~/.Renviron
+      # sed -i '/JULIA_HOME=/d' \
+      #     ~/.Renviron
 
-      julia_bindir="$(dirname "$(realpath "$(command -v julia)")")"
+      # julia_bindir="$(dirname "$(realpath "$(command -v julia)")")"
 
-      case "$julia_bindir" in
-          "$HOME"/*)
-              # path inside $HOME -> make it HOME-relative, expanded by R at startup
-              julia_bindir_rel="${julia_bindir#"$HOME"/}"
-              julia_bindir_line="JULIA_BINDIR=\"\${HOME}/${julia_bindir_rel}\""
-              julia_home_line="JULIA_HOME=\"\${HOME}/${julia_bindir_rel}\""
-              ;;
-          *)
-              # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
-              julia_bindir_line="JULIA_BINDIR=${julia_bindir}"
-              julia_home_line="JULIA_HOME=${julia_bindir}"
-              ;;
-      esac
+      # case "$julia_bindir" in
+      #     "$HOME"/*)
+      #         # path inside $HOME -> make it HOME-relative, expanded by R at startup
+      #         julia_bindir_rel="${julia_bindir#"$HOME"/}"
+      #         julia_bindir_line="JULIA_BINDIR=\"\${HOME}/${julia_bindir_rel}\""
+      #         julia_home_line="JULIA_HOME=\"\${HOME}/${julia_bindir_rel}\""
+      #         ;;
+      #     *)
+      #         # outside $HOME (e.g. /usr/bin) -> no portable form exists, keep absolute
+      #         julia_bindir_line="JULIA_BINDIR=${julia_bindir}"
+      #         julia_home_line="JULIA_HOME=${julia_bindir}"
+      #         ;;
+      # esac
 
-      printf '%s\n' "$julia_bindir_line" >> ~/.Renviron
-      printf '%s\n' "$julia_home_line" >> ~/.Renviron
+      # printf '%s\n' "$julia_bindir_line" >> ~/.Renviron
+      # printf '%s\n' "$julia_home_line" >> ~/.Renviron
 
       sed -i '/JULIA_PROJECT=/d' \
           ~/.Renviron
@@ -3226,7 +3264,7 @@ main() {
             shift
             exit_colors "$@"
             ;;
-        --status|-s)
+        --status|-s|status)
             shift
             exit_status "$@"
             ;;
