@@ -1491,7 +1491,7 @@ do_pj_ijulia_reg() {
           # Pkg.build("IJulia")
           # '
           
-          julia_project="$(dirname "$(realpath ".")")"
+          julia_project="$(realpath ".")"
       
           julia --project \
                 -e "
@@ -1529,7 +1529,7 @@ do_pj_ijulia_rcall_reg() {
           # Pkg.build("IJulia")
           # '
           
-          julia_project="$(dirname "$(realpath "$JULIA_RCALL_ENV")")"
+          julia_project="$(realpath "$JULIA_RCALL_ENV")"
       
           julia --project="$JULIA_RCALL_ENV" \
                 -e "
