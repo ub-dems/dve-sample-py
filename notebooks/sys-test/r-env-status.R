@@ -6,7 +6,7 @@
 #       extension: .R
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.5
+#       jupytext_version: 1.19.6
 #   kernelspec:
 #     display_name: R
 #     language: R
@@ -54,6 +54,21 @@
 # ./build.sh --help
 #
 # ```
+
+# %% [markdown]
+# ## R Session Directory
+
+# %%
+getwd()
+
+# %%
+setwd("../..")
+
+# %%
+getwd()
+
+# %%
+source(".Rprofile")
 
 # %%
 sessionInfo()

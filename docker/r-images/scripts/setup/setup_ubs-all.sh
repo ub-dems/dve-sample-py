@@ -1461,7 +1461,10 @@ do_pj_irkernel_reg() {
 
       # @see: https://github.com/IRkernel/IRkernel
 
-      R --quiet   -e 'IRkernel::installspec()'
+
+      rprofile="$(realpath .Rprofile)"
+
+      R --quiet   -e "IRkernel::installspec(rprofile='$rprofile')"
 
       # jupyter labextension install @techrah/text-shortcuts  # for RStudio’s shortcuts
 

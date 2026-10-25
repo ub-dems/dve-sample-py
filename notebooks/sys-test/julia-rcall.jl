@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: jl:percent
+#     formats: jl:percent,ipynb
 #     text_representation:
 #       extension: .jl
 #       format_name: percent
@@ -41,12 +41,43 @@ macro bash_str(s) open(`bash`,"w",stdout) do io; print(io, s); end; end
 
 # %%
 bash"""
-
  env | grep -e '^JULIA'
+"""
 
+# %% [markdown]
+# ## LDCONFIG Required Configuration
+
+# %% [markdown]
+# *required*
+#
+# in `./docker/r-images/build.conf`
+#
+# ```bash
+# # ---(ld)---------------------------
+#
+# Y_RE_LD_CONFIG=1
+#
+# ```
+#
+
+# %%
+bash"""
  ls -l /etc/ld.so.conf.d/  
  find  /etc/ld.so.conf.d/ -type f -exec cat {} \;
 """
+
+# %%
+bash"""
+ ldd /usr/local/lib/R/lib/libR.so
+"""
+
+# %%
+bash"""
+ ldd /usr/local/lib/R/library/utils/libs/utils.so
+"""
+
+# %% [markdown]
+# ## Julia Environment
 
 # %%
 using Pkg
