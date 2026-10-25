@@ -9,9 +9,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.6
 #   kernelspec:
-#     display_name: Julia 1.13
+#     display_name: "Julia\u2014Project 1.13"
 #     language: julia
-#     name: julia-1.13
+#     name: julia_project-1.13
 # ---
 
 # %% [markdown]
@@ -51,19 +51,16 @@ bash"""
 """
 
 # %% [markdown]
-# ## Plotting
-
-# %%
-### `Plots` examples
+# ## Julia Environment
 
 # %%
 using Pkg
 
 # %%
-# Pkg.add("Plots")
+Pkg.status()
 
-# %%
-# Pkg.build("Plots")
+# %% [markdown]
+# ## Plotting
 
 # %%
 using Plots
