@@ -2392,6 +2392,7 @@ do_ju_rcall_lock() {
         ( activate
           export JULIA_PYTHONCALL_EXE='python'
           export JULIA_CONDAPKG_BACKEND='Null'
+          export LD_LIBRARY_PATH=/usr/local/lib/R/lib
 
           info "+(do_ju_rcall_lock):" "ju - juliactl lock for $JULIA_RCALL_ENV/Project.toml ..."
           
@@ -2434,6 +2435,7 @@ do_ju_rcall_sync() {
         ( activate
           export JULIA_PYTHONCALL_EXE='python'
           export JULIA_CONDAPKG_BACKEND='Null'
+          export LD_LIBRARY_PATH=/usr/local/lib/R/lib
 
           info "+(do_ju_rcall_sync):" "ju - juliactl sync for $JULIA_RCALL_ENV/Project.toml ..."
           

@@ -471,6 +471,7 @@ function init_julia() {
     [ "$Y_BASE_INIT_JULIA" = 1 ] || return 0
     
     init_ju_ldconfig
+    init_ju_ldpaths
     
 }
 

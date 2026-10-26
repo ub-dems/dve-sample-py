@@ -2,12 +2,16 @@
 #set -x
 #JULIA_LIB=$(LD_LIBRARY_PATH="" julia -e 'println(joinpath(dirname(Sys.BINDIR), "lib", "julia"))')
 
-export JULIA_EXE="$(which -a julia | grep bin | head -n1)"
-export JULIA_BINDIR="$(dirname "$(realpath "$JULIA_EXE")")"
-export JULIA_BASEDIR="$(dirname "$(realpath "$JULIA_BINDIR")")"
-export JULIA_LIBDIR="$(dirname "$(realpath "$JULIA_BASEDIR")")/lib"
+export JULIA_DIST="$(juliaup status | grep '\*' | awk '{print $3}')"
 
+export JULIA_EXE="$(which julia)"
+export JULIA_BASEDIR="$(realpath $HOME/.julia/juliaup/julia-$JULIA_DIST)"
+export JULIA_BINDIR="$JULIA_BASEDIR/bin"
+export JULIA_LIBDIR="$JULIA_BASEDIR/lib"
+
+export LD_LIBRARY_PATH="/usr/local/lib/R/lib:${LD_LIBRARY_PATH}"
 export LD_LIBRARY_PATH="$JULIA_LIBDIR:$JULIA_LIBDIR/julia:${LD_LIBRARY_PATH}"
+
 export JULIA_PROJECT="$(dirname "$(realpath "$0")")"
 
-exec "$JULIA_BINDIR/julia" "$@"
+exec "$JULIA_EXE" --project="$JULIA_PROJECT" "$@"
