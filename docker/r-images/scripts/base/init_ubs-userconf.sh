@@ -410,6 +410,22 @@ function init_r_ldconfig() {
     
 }
 
+function init_r_ldpaths() {
+
+    [ "$Y_RE_LD_PATHS" = 1 ] || return 0
+
+    [ -f /usr/local/lib/R/etc/ldpaths ] || return 0
+
+    sed -i \
+        's|${R_HOME}/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu|${R_HOME}/lib:/usr/local/lib|' \
+        /usr/local/lib/R/etc/ldpaths    
+    
+
+    grep -n 'R_LD_LIBRARY_PATH' /usr/local/lib/R/etc/ldpaths
+    
+    
+}
+
 
 
 

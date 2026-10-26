@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: R:percent
+#     formats: ipynb,R:percent
 #     text_representation:
 #       extension: .R
 #       format_name: percent
@@ -49,7 +49,7 @@ renv::status()
 # ## Julia Environment
 
 # %%
-system("env | grep ^JULIA", intern=TRUE)
+system("env | grep ^JULIA", intern = TRUE)
 
 # %% [markdown]
 # ## JuliaCall Session
