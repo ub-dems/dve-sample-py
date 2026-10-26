@@ -417,9 +417,8 @@ function init_r_ldpaths() {
     [ -f /usr/local/lib/R/etc/ldpaths ] || return 0
 
     sed -i \
-        's|${R_HOME}/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu|${R_HOME}/lib:/usr/local/lib|' \
+        's|"/usr/local/lib:/usr/lib/x86_64-linux-gnu"|""|' \
         /usr/local/lib/R/etc/ldpaths    
-    
 
     grep -n 'R_LD_LIBRARY_PATH' /usr/local/lib/R/etc/ldpaths
     

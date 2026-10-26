@@ -2499,6 +2499,24 @@ do_ju_connector() {
       # printf '%s\n' "$julia_bindir_line" >> ~/.Renviron
       # printf '%s\n' "$julia_home_line" >> ~/.Renviron
 
+      julia_dist="$(juliaup status | grep '\*' | awk '{print $3}')"
+      julia_basedir="$(realpath $HOME/.julia/juliaup/julia-$julia_dist)"
+      julia_bindir="$julia_basedir/bin"
+      julia_libdir="$julia_basedir/lib"
+
+      if [ -f /usr/local/lib/R/etc/ldpaths ]; then
+          .  /usr/local/lib/R/etc/ldpaths
+      fi    
+
+      ld_library_path="${LD_LIBRARY_PATH}"
+      ld_library_path="${ld_library_path}:$julia_libdir:$julia_libdir/julia"
+
+      sed -i '/^LD_LIBRARY_PATH=/d' \
+          ~/.Renviron
+
+      printf 'LD_LIBRARY_PATH=%s\n' "$ld_library_path" >> ~/.Renviron
+      
+
       sed -i '/JULIA_PROJECT=/d' \
           ~/.Renviron
 

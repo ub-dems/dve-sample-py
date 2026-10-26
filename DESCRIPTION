@@ -75,7 +75,7 @@ Encoding: UTF-8
 LazyData: yes
 Roxygen: list(markdown = TRUE)
 Config/build/copy-method: link
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Collate: 
     'RcppExports.R'
     'dummy-fun.R'
