@@ -68,8 +68,21 @@ jl_hello = R"""({
 print("jl_hello=")
 println(rcopy(jl_hello))
 
+R"""({
+         
+         # Explicitly close JuliaCall socket/connection before exit to prevent event loop panic
+         try(julia_command("exit()"), silent = TRUE)
+         0
+})"""
+# Clean teardown of RCall and embedded R before exiting
+try
+    # Tell RCall/R to close open connections and finalize cleanly
+    reval("q(save = 'no')")
+catch
+    # Catch any harmless cleanup complaints
+end
 
-# exit()
-
+# Force a clean native exit without triggering the libuv stream panic
+Base.exit(0)
 
 
