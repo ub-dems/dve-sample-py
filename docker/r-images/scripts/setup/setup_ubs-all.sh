@@ -2511,10 +2511,10 @@ do_ju_connector() {
       ld_library_path="${LD_LIBRARY_PATH}"
       ld_library_path="${ld_library_path}:$julia_libdir:$julia_libdir/julia"
 
-      sed -i '/^LD_LIBRARY_PATH=/d' \
-          ~/.Renviron
+      # sed -i '/^LD_LIBRARY_PATH=/d' \
+      #     ~/.Renviron
 
-      printf 'LD_LIBRARY_PATH=%s\n' "$ld_library_path" >> ~/.Renviron
+      # printf 'LD_LIBRARY_PATH=%s\n' "$ld_library_path" >> ~/.Renviron
       
 
       sed -i '/JULIA_PROJECT=/d' \

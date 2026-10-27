@@ -433,6 +433,7 @@ function init_r() {
     [ "$Y_BASE_INIT_R" = 1 ] || return 0
     
     init_r_ldconfig
+    init_r_ldpaths
     
 }
 
@@ -470,7 +471,6 @@ function init_julia() {
     [ "$Y_BASE_INIT_JULIA" = 1 ] || return 0
     
     init_ju_ldconfig
-    init_ju_ldpaths
     
 }
 

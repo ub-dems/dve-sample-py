@@ -32,46 +32,44 @@ println(names(jmtcars))
 
 r_salutation = "Hi"
 
-@rput r_salutation
+# 1. Interpolate Julia variables directly into the R expression
+r_hello = R"({
+    devtools::load_all('.')
+    dmy_hello(salutation = $r_salutation)
+})"
 
-@rlibrary devtools
-
-"""R
-devtools::load_all(".")
-r_hello <- dmy_hello(salutation=r_salutation)
-#r_hello <- dmy_hello()
-print("R>", "r_hello", r_hello)
-"""
-
-@rget r_hello
 print("r_hello=")
-println(r_hello)
-#@printf "r_hello=%s\n" r_hello
+println(rcopy(r_hello)) # Safely convert back to a native Julia object
 
 
-
+# 2. For calling Julia from R via JuliaCall inside the script:
 """R
 library(JuliaCall)
 julia_setup()
-julia_library("Pkg")
-jl_status <- julia_eval("Pkg.status()")
 """
 
-@rget jl_status
-print("jl_status=")
-println(jl_status)
+# """R
+# julia_library("Pkg")
+# # Pass values explicitly or evaluate cleanly
+# jl_status <- julia_eval("Pkg.status()")
+# print("R>", "jl_status", jl_status)
+# """
 
 
+jl_hello = R"""({
+         library(JuliaCall)
+         julia_setup()
+         julia_library("Dve")
+         jl_hello <- julia_call("Dve.hello_world","Bonjour","Marianne")
+         print(c("R>", "jl_hello", jl_hello))
+         jl_hello
+})"""
 
-"""R
-julia_library("Dve")
-jl_hello <- julia_call("Dve.hello_world","Bonjour","Marianne")
-print("R>", "jl_hello", jl_hello)
-"""
-
-@rget jl_hello
 print("jl_hello=")
-println(jl_hello)
+println(rcopy(jl_hello))
+
+
+# exit()
 
 
 
