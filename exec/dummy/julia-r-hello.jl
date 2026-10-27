@@ -201,6 +201,11 @@ end
 
 
 function hello_from_r(salutation, who)
+
+    r_allo = rcall(:dmy_hello, "Bonjour", "Marianne")
+    @printf "r_allô=%s\n" r_allo
+
+    
     r_salutation = salutation
 
     # @rput r_salutation      # works in Julia REPL, script context mismatch 
