@@ -90,7 +90,6 @@ Usage
 -----
 
 ```python
-
 ##
 # define
 #
@@ -104,10 +103,10 @@ def conf_dir(env_key, default_value):
     return rootpath.detect(__file__, "^.git$") + p[1:] if p.startswith(f"./") else p
 
 
-DATA_HOME = conf_dir('PC_DATA_HOME', "./data/ext/home")
-DATA_HOST = conf_dir('PC_DATA_HOST', "./data/ext/host")
-DATA_USER = conf_dir('PC_DATA_USER', "./data/ext/user")
-DATA_DESK = conf_dir('PC_DATA_DESK', "~/Desktop")
+DATA_HOME = conf_dir("PC_DATA_HOME", "./data/ext/home")
+DATA_HOST = conf_dir("PC_DATA_HOST", "./data/ext/host")
+DATA_USER = conf_dir("PC_DATA_USER", "./data/ext/user")
+DATA_DESK = conf_dir("PC_DATA_DESK", "~/Desktop")
 
 ##
 # reference
@@ -115,7 +114,6 @@ DATA_DESK = conf_dir('PC_DATA_DESK', "~/Desktop")
 
 path_1 = DATA_USER + f"/DRL/D2QN/save-01001653/main_dqn.h5"
 path_2 = DATA_DESK + f"/results_DRL/final/model-a_test.csv"
-
 ```
 
 run `test_common.py` unittest for path resolution

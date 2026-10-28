@@ -29,9 +29,7 @@ def new_proc_id():
     return ProcGlobals.proc_num
 
 
-def run_context(
-    command, script=None, name=None, parms=None, xargs=None, argv=None, *args, **kwargs
-):
+def run_context(command, script=None, name=None, parms=None, xargs=None, argv=None, *args, **kwargs):
     unused(kwargs)
     conf = None
     proc_id = new_proc_id()
@@ -53,9 +51,7 @@ def run_context(
     return ctx
 
 
-def run_command(
-    command, script=None, name=None, parms=None, xargs=None, argv=None, *args, **kwargs
-):
+def run_command(command, script=None, name=None, parms=None, xargs=None, argv=None, *args, **kwargs):
     ctx = run_context(command, script, name, parms, xargs, argv, *args, **kwargs)
     msg = f"> {ctx['prefix']} {command}"
     log.info(msg)

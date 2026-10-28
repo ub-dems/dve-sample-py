@@ -61,9 +61,9 @@ class TraceInterval:
         return {
             "i": self.item_count,
             "ms": int(self.elapsed_time * 1000),
-            "hz": Decimal.from_float(
-                self.item_count / self.elapsed_time if self.elapsed_time > 0 else -1.0
-            ).quantize(Decimal(".01"), rounding=ROUND_HALF_UP),
+            "hz": Decimal.from_float(self.item_count / self.elapsed_time if self.elapsed_time > 0 else -1.0).quantize(
+                Decimal(".01"), rounding=ROUND_HALF_UP
+            ),
         }
 
     def add_time(self, other):
@@ -134,9 +134,7 @@ class TraceFrame:
         self.frozen = False
         self.total = self.make_interval()
         self.callee = self.make_interval()
-        self.counter = self.make_counter(
-            time_period=self.time_period, item_samples=self.item_samples
-        )
+        self.counter = self.make_counter(time_period=self.time_period, item_samples=self.item_samples)
 
     @classmethod
     def make_interval(cls):
@@ -169,9 +167,7 @@ class TraceFrame:
         return self
 
     def reload(self):
-        self.counter = self.make_counter(
-            time_period=self.time_period, item_samples=self.item_samples
-        )
+        self.counter = self.make_counter(time_period=self.time_period, item_samples=self.item_samples)
 
     def flush(self):
         self.aggregate(no_report=True)

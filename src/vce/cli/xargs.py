@@ -205,9 +205,7 @@ class AppNumaArgs(AppAutoArgs):
     def numa_parser(self) -> argparse.ArgumentParser:
         """Auto Script Argument Parser."""
         parser = self.auto_parser()
-        parser.add_argument(
-            "--numa-enable", "-r", type=str, help="enable numa execution", default="0"
-        )
+        parser.add_argument("--numa-enable", "-r", type=str, help="enable numa execution", default="0")
         return parser
 
     def get_parser(self) -> argparse.ArgumentParser:

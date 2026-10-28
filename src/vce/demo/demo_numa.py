@@ -310,9 +310,7 @@ def exec_test_numa(argv, xargs, name, **kwargs):
 
 
 def exec_test(argv, xargs, name, **kwargs):
-    msg = (
-        f"#<numa.test>: cmd={'test_numa'}, xargs:<{xargs!s}>, argv:<{argv!s}>, kwargs:<{kwargs!s}>"
-    )
+    msg = f"#<numa.test>: cmd={'test_numa'}, xargs:<{xargs!s}>, argv:<{argv!s}>, kwargs:<{kwargs!s}>"
     log.info(msg)
     print(msg)
     exec_test_numa(argv, xargs, name, **kwargs)
