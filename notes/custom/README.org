@@ -568,6 +568,9 @@ EOF
 #
 # ---(project)---
 CUST_S_PROJECT_NAME='dve-sample-r'
+CUST_S_PROJECT_ALIAS_1='dve-sample-r'
+CUST_S_PROJECT_ALIAS_2='dve-sample-py'
+CUST_S_PROJECT_ALIAS_3='dve-sample-md'
 # ---(package)---
 CUST_S_R_PACKAGE_NAME='dvesimpler'
 CUST_S_PY_PACKAGE_NAME='dvepy'
@@ -616,6 +619,9 @@ EOF
 #
 # ---(project)---
 CUST_T_PROJECT_NAME='us-proto-r'
+CUST_T_PROJECT_ALIAS_1="$CUST_T_PROJECT_NAME"
+CUST_T_PROJECT_ALIAS_2="$CUST_T_PROJECT_NAME"
+CUST_T_PROJECT_ALIAS_3="$CUST_T_PROJECT_NAME"
 # ---(package)---
 CUST_T_R_PACKAGE_NAME='USprotoR'
 CUST_T_PY_PACKAGE_NAME='usppy'
@@ -698,6 +704,9 @@ if [ ! "${CUST_X_CUSTOMIZED}" = '0' ] ; then
 fi
 
 [ -z "$CUST_S_PROJECT_NAME" ] && { echo "config error: CUST_S_PROJECT_NAME"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_1" ] && { echo "config error: CUST_S_PROJECT_ALIAS_1"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_2" ] && { echo "config error: CUST_S_PROJECT_ALIAS_2"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_3" ] && { echo "config error: CUST_S_PROJECT_ALIAS_3"; exit 1; }
 [ -z "$CUST_S_R_PACKAGE_NAME" ] && { echo "config error: CUST_S_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_PY_PACKAGE_NAME" ] && { echo "config error: CUST_S_PY_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_S_JULIA_PACKAGE_NAME"; exit 1; }
@@ -724,6 +733,9 @@ fi
 [ -z "$CUST_S_INFO_TAGS" ] && { echo "config error: CUST_S_INFO_TAGS"; exit 1; }
 
 [ -z "$CUST_T_PROJECT_NAME" ] && { echo "config error: CUST_T_PROJECT_NAME"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_1" ] && { echo "config error: CUST_T_PROJECT_ALIAS_1"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_2" ] && { echo "config error: CUST_T_PROJECT_ALIAS_2"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_3" ] && { echo "config error: CUST_T_PROJECT_ALIAS_3"; exit 1; }
 [ -z "$CUST_T_R_PACKAGE_NAME" ] && { echo "config error: CUST_T_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_PY_PACKAGE_NAME" ] && { echo "config error: CUST_T_PY_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_T_JULIA_PACKAGE_NAME"; exit 1; }
@@ -1033,6 +1045,21 @@ grep -l -r \
      --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
      -I -e "$CUST_S_PROJECT_NAME" | \
     xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_NAME}{$CUST_T_PROJECT_NAME}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_1" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_1}{$CUST_T_PROJECT_ALIAS_1}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_2" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_2}{$CUST_T_PROJECT_ALIAS_2}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_3" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_3}{$CUST_T_PROJECT_ALIAS_3}g"
 
 
 #+END_SRC

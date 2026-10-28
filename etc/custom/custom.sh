@@ -515,9 +515,13 @@ EOF
 #
 # ---(project)---
 CUST_S_PROJECT_NAME='dve-sample-r'
+CUST_S_PROJECT_ALIAS_1='dve-sample-r'
+CUST_S_PROJECT_ALIAS_2='dve-sample-py'
+CUST_S_PROJECT_ALIAS_3='dve-sample-md'
 # ---(package)---
 CUST_S_R_PACKAGE_NAME='dvesimpler'
-CUST_S_PY_PACKAGE_NAME='dve_sample_r'
+CUST_S_PY_PACKAGE_NAME='dvepy'
+CUST_S_JULIA_PACKAGE_NAME='Dve'
 # ---(source repository)---
 CUST_S_REPO_PATH='ub-dems/ds-labs'
 CUST_S_CICD_PATH='ub-dems/vs-base'
@@ -561,9 +565,13 @@ EOF
 #
 # ---(project)---
 CUST_T_PROJECT_NAME='us-proto-r'
+CUST_T_PROJECT_ALIAS_1="$CUST_T_PROJECT_NAME"
+CUST_T_PROJECT_ALIAS_2="$CUST_T_PROJECT_NAME"
+CUST_T_PROJECT_ALIAS_3="$CUST_T_PROJECT_NAME"
 # ---(package)---
 CUST_T_R_PACKAGE_NAME='USprotoR'
-CUST_T_PY_PACKAGE_NAME='us_proto_r'
+CUST_T_PY_PACKAGE_NAME='usppy'
+CUST_T_JULIA_PACKAGE_NAME='Usp'
 # ---(source repository)---
 CUST_T_REPO_PATH='ub-dems/cs-labs/user-dsuser'
 CUST_T_CICD_PATH="${CUST_T_REPO_PATH}"
@@ -648,8 +656,12 @@ if [ ! "${CUST_X_CUSTOMIZED}" = '0' ] ; then
 fi
 
 [ -z "$CUST_S_PROJECT_NAME" ] && { echo "config error: CUST_S_PROJECT_NAME"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_1" ] && { echo "config error: CUST_S_PROJECT_ALIAS_1"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_2" ] && { echo "config error: CUST_S_PROJECT_ALIAS_2"; exit 1; }
+[ -z "$CUST_S_PROJECT_ALIAS_3" ] && { echo "config error: CUST_S_PROJECT_ALIAS_3"; exit 1; }
 [ -z "$CUST_S_R_PACKAGE_NAME" ] && { echo "config error: CUST_S_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_PY_PACKAGE_NAME" ] && { echo "config error: CUST_S_PY_PACKAGE_NAME"; exit 1; }
+[ -z "$CUST_S_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_S_JULIA_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_S_REPO_PATH" ] && { echo "config error: CUST_S_REPO_PATH"; exit 1; }
 [ -z "$CUST_S_CICD_PATH" ] && { echo "config error: CUST_S_CICD_PATH"; exit 1; }
 [ -z "$CUST_S_REPO_HOST" ] && { echo "config error: CUST_S_REPO_HOST"; exit 1; }
@@ -673,8 +685,12 @@ fi
 [ -z "$CUST_S_INFO_TAGS" ] && { echo "config error: CUST_S_INFO_TAGS"; exit 1; }
 
 [ -z "$CUST_T_PROJECT_NAME" ] && { echo "config error: CUST_T_PROJECT_NAME"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_1" ] && { echo "config error: CUST_T_PROJECT_ALIAS_1"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_2" ] && { echo "config error: CUST_T_PROJECT_ALIAS_2"; exit 1; }
+[ -z "$CUST_T_PROJECT_ALIAS_3" ] && { echo "config error: CUST_T_PROJECT_ALIAS_3"; exit 1; }
 [ -z "$CUST_T_R_PACKAGE_NAME" ] && { echo "config error: CUST_T_R_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_PY_PACKAGE_NAME" ] && { echo "config error: CUST_T_PY_PACKAGE_NAME"; exit 1; }
+[ -z "$CUST_T_JULIA_PACKAGE_NAME" ] && { echo "config error: CUST_T_JULIA_PACKAGE_NAME"; exit 1; }
 [ -z "$CUST_T_REPO_PATH" ] && { echo "config error: CUST_T_REPO_PATH"; exit 1; }
 [ -z "$CUST_T_CICD_PATH" ] && { echo "config error: CUST_T_CICD_PATH"; exit 1; }
 [ -z "$CUST_T_REPO_HOST" ] && { echo "config error: CUST_T_REPO_HOST"; exit 1; }
@@ -719,11 +735,15 @@ echo "#:> (cust-rename)"
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_S_R_PACKAGE_NAME*" -o -name "$CUST_S_R_PROJECT_NAME*"
+     -name "$CUST_S_R_PACKAGE_NAME*"
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_S_PY_PACKAGE_NAME*" -o -name "$CUST_S_PY_PROJECT_NAME*"
+     -name "$CUST_S_PY_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_S_JULIA_PACKAGE_NAME*"
 echo "--------------------------------"
 echo ""
 # cust-rename-pre ends here
@@ -736,12 +756,36 @@ echo ""
 [ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
 [ "${CUST_X_CUSTOMIZED}" = '0' ] || exit 1
 
-mv -v ./${CUST_S_R_PACKAGE_NAME}.Rproj ./${CUST_T_R_PACKAGE_NAME}.Rproj
-mv -v ./man/${CUST_S_R_PACKAGE_NAME}-package.Rd ./man/${CUST_T_R_PACKAGE_NAME}-package.Rd
-mv -v ./R/${CUST_S_R_PACKAGE_NAME}-package.r ./R/${CUST_T_R_PACKAGE_NAME}-package.r
+# ---(r)-----
 
-[ -f ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ] && \
-mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAGE_NAME}.h
+if [ "${CUST_S_R_PACKAGE_NAME}" != "${CUST_T_R_PACKAGE_NAME}" ]; then
+
+    mv -v ./${CUST_S_R_PACKAGE_NAME}.Rproj ./${CUST_T_R_PACKAGE_NAME}.Rproj
+    mv -v ./man/${CUST_S_R_PACKAGE_NAME}-package.Rd ./man/${CUST_T_R_PACKAGE_NAME}-package.Rd
+    mv -v ./R/${CUST_S_R_PACKAGE_NAME}-package.r ./R/${CUST_T_R_PACKAGE_NAME}-package.r
+
+    [ -f ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ] && \
+        mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAGE_NAME}.h
+
+fi    
+
+
+# ---(python)-----
+
+if [ "${CUST_S_PY_PACKAGE_NAME}" != "${CUST_T_PY_PACKAGE_NAME}" ]; then
+
+    echo "py noop: mv ${CUST_S_PY_PACKAGE_NAME} -> ${CUST_T_PY_PACKAGE_NAME}"
+
+fi    
+
+# ---(julia)-----
+
+if [ "${CUST_S_JULIA_PACKAGE_NAME}" != "${CUST_T_JULIA_PACKAGE_NAME}" ]; then
+    
+    [ -f ./src/${CUST_S_JULIA_PACKAGE_NAME}.jl ] && \
+        mv -v ./src/${CUST_S_JULIA_PACKAGE_NAME}.jl ./src/${CUST_T_R_PACKAGE_NAME}.jl
+
+fi
 # cust-rename ends here
 
 
@@ -753,7 +797,15 @@ mv -v ./inst/include/${CUST_S_R_PACKAGE_NAME}.h ./inst/include/${CUST_T_R_PACKAG
 echo "--------------------------------"
 find . \
      \( -path ./home -o -path ./notes \) -prune -o \
-     -name "$CUST_T_R_PACKAGE_NAME*" -o -name "$CUST_T_PROJECT_NAME*"
+     -name "$CUST_T_R_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_T_PY_PACKAGE_NAME*"
+echo "--------------------------------"
+find . \
+     \( -path ./home -o -path ./notes \) -prune -o \
+     -name "$CUST_T_JULIA_PACKAGE_NAME*"
 echo "--------------------------------"
 echo ""
 echo "#:< (cust-rename)"
@@ -971,6 +1023,21 @@ grep -l -r \
      --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
      -I -e "$CUST_S_PROJECT_NAME" | \
     xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_NAME}{$CUST_T_PROJECT_NAME}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_1" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_1}{$CUST_T_PROJECT_ALIAS_1}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_2" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_2}{$CUST_T_PROJECT_ALIAS_2}g"
+
+grep -l -r \
+     --exclude-dir=.git --exclude-dir=custom --exclude-dir=notes --exclude-dir=home --exclude-dir=logs \
+     -I -e "$CUST_S_PROJECT_ALIAS_3" | \
+    xargs -t -l1 perl -pi -e  "s{$CUST_S_PROJECT_ALIAS_3}{$CUST_T_PROJECT_ALIAS_3}g"
 # cust-project ends here
 
 
@@ -1373,6 +1440,53 @@ echo ""
 
 echo "#:< (project-desc/PY)"
 # cust-pinfo-py-post ends here
+
+# Project Description/JULIA
+
+# #+NAME: cust-pinfo-julia-vers-pre
+
+# [[file:../../notes/custom/README.org::cust-pinfo-julia-vers-pre][cust-pinfo-julia-vers-pre]]
+echo "#:> (project-desc/JULIA)"
+
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+
+JULIA_MODULE="./src/${CUST_T_R_PACKAGE_NAME}.jl"
+
+echo "--- MODULE ----------------"
+[ -f "$JULIA_MODULE" ] && \
+awk '/^"""/,/^module/' "$JULIA_MODULE"
+echo "--------------------------------"
+echo ""
+# cust-pinfo-julia-vers-pre ends here
+
+
+
+# #+NAME: cust-pinfo-julia
+
+# [[file:../../notes/custom/README.org::cust-pinfo-julia][cust-pinfo-julia]]
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+[ "${CUST_X_CUSTOMIZED}" = '0' ] || exit 1
+
+perl -pi -e  "s{(given\s*=\s*)\"\Q$CUST_S_INFO_AUTH_NAME\E\"}{\1\"$CUST_T_INFO_AUTH_NAME\"}" ./DESCRIPTION
+perl -pi -e  "s{(family\s*=\s*)\"\Q$CUST_S_INFO_AUTH_SURNAME\E\"}{\1\"$CUST_T_INFO_AUTH_SURNAME\"}" ./DESCRIPTION
+perl -pi -e  's{(email\s*=\s*)\"\Q$ENV{CUST_S_INFO_AUTH_EMAIL}\E\"}{\1\"$ENV{CUST_T_INFO_AUTH_EMAIL}\"}' ./DESCRIPTION
+perl -pi -e  "s{(Title\s*:\s*)\Q$CUST_S_INFO_TITLE\E}{\1$CUST_T_INFO_TITLE}" ./DESCRIPTION
+perl -pi -e  "s{(Description\s*:\s*)\Q$CUST_S_INFO_DESC\E}{\1$CUST_T_INFO_DESC}" ./DESCRIPTION
+# cust-pinfo-julia ends here
+
+
+
+# #+NAME: cust-pinfo-julia-post
+
+# [[file:../../notes/custom/README.org::cust-pinfo-julia-post][cust-pinfo-julia-post]]
+[ -f ./etc/custom/custom.conf ] && . ./etc/custom/custom.conf
+echo "--- DESCRIPTION ----------------"
+awk '/^Type:/,/^Imports:/' ./DESCRIPTION
+echo "--------------------------------"
+echo ""
+
+echo "#:< (project-desc/R)"
+# cust-pinfo-julia-post ends here
 
 # Project Description/MD
 
