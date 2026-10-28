@@ -329,13 +329,7 @@ def prepare_data(df=df, model=model):
             i = ind
 
     if alert == 1:
-        print(
-            "Attenzione la stringa n  "
-            + str(i)
-            + " con id numero "
-            + str(id[i])
-            + " produce troppi indici"
-        )
+        print("Attenzione la stringa n  " + str(i) + " con id numero " + str(id[i]) + " produce troppi indici")
     else:
         print("ok")
 

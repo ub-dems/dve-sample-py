@@ -1,0 +1,90 @@
+# @see: ~/.R/Makevars
+# @see: ./docker/r-image/Makefile
+# $(PROJECT_ROOT)/etc/R mounted as ~/.R (in project VCS)
+
+
+# from ${R_HOME}/etc/Makeconf
+#CXXFLAGS = $(R CMD config CXXFLAGS)
+#CXXFLAGS = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+# NOTE: Compilation used the following non-portable flag(s): ‘-Wdate-time’ ‘-Werror=format-security’ ‘-Wformat’""
+
+CXX_STD = CXX17
+
+CXX17FLAGS = -g -fPIC -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -g
+
+CXX17FLAGS += -fno-omit-frame-pointer
+#CXX17FLAGS += -fsanitize=address,undefined
+#CXX17FLAGS += -ffunction-sections -fdata-sections
+#CXX17FLAGS += -ftemplate-depth-256 -fmerge-all-constants
+
+CXX17FLAGS += -flto=auto
+CXX17LINKFLAGS += -flto=auto
+
+CXX17FLAGS += -march=native -mtune=native
+
+CXX17FLAGS += -Wno-ignored-attributes
+
+
+# RcppEigen implicit support to avoid RcppArmdillo include clash
+# Seealso: ../notes/howtos/Rcpp-HOWTO-Q4-*.md
+EIG_CPPPATH := `$(R_HOME)/bin/Rscript -e "cat(system.file('include', package='RcppEigen'))"`
+CPPFLAGS += -I$(EIG_CPPPATH)
+
+# from ${R_HOME}/etc/Makeconf
+#CFLAGS = $(R CMD config CFLAGS)
+#CFLAGS = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+
+#LDFLAGS = $(R CMD config LDFLAGS)
+#LDLAGS = -L/usr/local/lib
+# verbose linking
+LDLAGS += -v -Wl,--verbose
+
+# g++ Linker options
+LDFLAGS=-Wl,--gc-sections -Wl,--as-needed
+
+
+# Settings from /etc/R/Makeconf with "non-portable flag(s):"
+# ‘-Wdate-time’ ‘-Werror=format-security’ ‘-Wformat’ replaced by -Wall -pedantic
+# and without -fdebug-prefix-map=...
+# See: https://accio.github.io/programming/2019/04/24/R-Makevars.html
+# See: https://stackoverflow.com/questions/50658198/cran-submission-r-cmd-check-warning-compilation-flags-used
+#
+# Note: -Wformat-overflow=3 is a non-portable flag, which seems to be used by CRAN check though
+#CC=gcc-7 -std=gnu99 ## -Wformat-overflow=3
+#CFLAGS = -g -O3 -Wall -pedantic -mtune=native -D_FORTIFY_SOURCE=2 $(LTO)
+#CXXFLAGS = -g -O3 -Wall -pedantic -mtune=native -frtti  -Wno-ignored-attributes -Wno-deprecated-declarations -D_FORTIFY_SOURCE=2 $(LTO)
+#CXXFLAGS = -g -O3 -Wall -pedantic -mtune=native -frtti -Wno-ignored-attributes -D_FORTIFY_SOURCE=2 $(LTO)
+#CXXFLAGS = -g -O3 -Wall -pedantic -mtune=native -frtti -D_FORTIFY_SOURCE=2 $(LTO)
+#FFLAGS= -g -O2 -mtune=native -Wall -pedantic
+#FCFLAGS=$FFLAGS
+
+# SIMD full support
+# Seealso: ~/.R/Makevars
+# Seealso: ../notes/howtos/Rcpp-HOWTO-Q{4}-*.md
+# Seealso: ../src/config.h
+
+##SHLIB_OPENMP_CXXFLAGS_SIMD = -msse2 -msse3 -msse4.1 -msse4.2 -mavx -mavx2
+#SHLIB_OPENMP_CXXFLAGS_SIMD = -march=native -ftree-vectorize -ffast-math
+#CXXFLAGS += $(SHLIB_OPENMP_CXXFLAGS_SIMD)
+
+
+# Default R build config
+#
+# Seealso: /etc/R/Makevars
+# Seealso: ~/.R/Makevars
+
+#{R}: R="${R_HOME}/bin/R"
+
+#{R}: # for c
+#{R}: CC=$("$R" CMD config CC)
+#{R}: CFLAGS=$("$R" CMD config CFLAGS)
+#{R}: LDFLAGS=$("$R" CMD config LDFLAGS)
+
+#{R}: # for c++
+#{R}: CXX=$("$R" CMD config CXX)
+#{R}: CXXFLAGS=$("$R" CMD config CXXFLAGS)
+#{R}: CPPFLAGS=$("$R" CMD config CPPFLAGS)
+
+#{R}: # check for BLAS
+#{R}: FCLAGS=$("$R" CMD config FFLAGS)
+#{R}: FLIBS=$("$R" CMD config FLIBS)

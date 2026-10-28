@@ -128,9 +128,7 @@ class ProjectConfigImpl(BaseConfigImpl, ProjectConfig):
 
     @property
     def is_config_defined(self) -> bool:
-        return self.local.get(
-            LocalConfigConsts.CONFIG_L_KEY_HAS_CONFIG, LocalConfigConsts.CONFIG_L_DEF_HAS_CONFIG
-        )
+        return self.local.get(LocalConfigConsts.CONFIG_L_KEY_HAS_CONFIG, LocalConfigConsts.CONFIG_L_DEF_HAS_CONFIG)
 
     @property
     def local(self) -> dict[str, Any]:

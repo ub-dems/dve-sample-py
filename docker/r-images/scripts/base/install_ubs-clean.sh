@@ -22,8 +22,23 @@ function env_dump() {
     
 }
 
+function upgrade_commons_all() {
+
+    [ "$Y_BASE_COMMONS_UPGRADE" = 1 ] || return 0
+
+    aq=" -qq -o=Dpkg::Use-Pty=0 "
+    
+    # Update and install
+    apt-get update $aq
+    
+    apt-get upgrade -y $aq
+    apt-get autoremove -y $aq
+    
+}
+
+
 function clean_up() {
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* 2> /dev/null
     rm -rf /tmp/downloaded_packages
 }
 
@@ -34,6 +49,7 @@ function main() {
     
     [ "$Y_BASE_CLEAN_ALL" = 1 ] || return 0
 
+    upgrade_commons_all
     clean_up
 
 }

@@ -32,6 +32,7 @@ doctype: md-report
    - see: [TODO:(a1-ref-chatgpt) (ChatGPT)](#a1-chatgpt)
    - see: [TODO:(a1-ref-perplexity) (Perplexity)](#a1-perplexity)
    - see: [TODO:(a1-ref-deepseek) (DeepSeek)](#a1-deepseek)
+   - see: [TODO:(a1-ref-kimi) (Kimi)](#a1-kimi)
    - see: [TODO:(a1-ref-vibe) (Vibe)](#a1-vibe)
 2. [Q:2 - TODO:(q2-ref)](#q2)
    - see: [TODO:(a2-ref-claude) (Claude)](#a2-claude)
@@ -39,6 +40,7 @@ doctype: md-report
    - see: [TODO:(a2-ref-chatgpt) (ChatGPT)](#a2-chatgpt)
    - see: [TODO:(a2-ref-perplexity) (Perplexity)](#a2-perplexity)
    - see: [TODO:(a2-ref-deepseek) (DeepSeek)](#a2-deepseek)
+   - see: [TODO:(a2-ref-kimi) (Kimi)](#a2-kimi)
    - see: [TODO:(a2-ref-vibe) (Vibe)](#a2-vibe)
 3. [A:a - TODO:(appendix-a)](#aa)
 
@@ -152,17 +154,23 @@ TODO:(a1-gemini) ...
 
 TODO:(a1-chatgpt) ...
 
+# A:1 (Perplexity)
+
+[^](#toc) **_TODO:(a1-ref-perplexity)_**
+
+TODO:(a1-perplexity) ...
+
 # A:1 (DeepSeek)
 
 [^](#toc) **_TODO:(a1-ref-deepseek)_**
 
 TODO:(a1-deepseek) ...
 
-# A:1 (Perplexity)
+# A:1 (Kimi)
 
-[^](#toc) **_TODO:(a1-ref-perplexity)_**
+[^](#toc) **_TODO:(a1-ref-kimi)_**
 
-TODO:(a1-perplexity) ...
+TODO:(a1-kimi) ...
 
 # A:1 (Vibe)
 
@@ -202,17 +210,23 @@ TODO:(a2-gemini) ...
 
 TODO:(a2-chatgpt) ...
 
+# A:2 (Perplexity)
+
+[^](#toc) **_TODO:(a2-ref-perplexity)_**
+
+TODO:(a2-perplexity) ...
+
 # A:2 (DeepSeek)
 
 [^](#toc) **_TODO:(a2-ref-deepseek)_**
 
 TODO:(a2-deepseek) ...
 
-# A:2 (Perplexity)
+# A:2 (Kimi)
 
-[^](#toc) **_TODO:(a2-ref-perplexity)_**
+[^](#toc) **_TODO:(a2-ref-kimi)_**
 
-TODO:(a2-perplexity) ...
+TODO:(a2-kimi) ...
 
 # A:2 (Vibe)
 

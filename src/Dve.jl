@@ -1,248 +1,95 @@
 """
 
-`Dve` template package.
+`Dve` Julia Module.
 
-Julia package template for new project definitions. `Python support` included.
+- see: notes/howtos/Julia*.{md,pdf}
+- see: notes/samples/julia/
 
 
 """
 module Dve
 
-# if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@optlevel"))
-#     @eval Base.Experimental.@optlevel 1
-# end
+using PythonCall
+using DataFrames: DataFrame
+using Statistics: mean
 
-# ## minimal version of conveniently using SymPy in Julia
-# ## uses getfield overloading to access sympy methods of Sym object
-
-# using PyCall
-
-# using SpecialFunctions
-# using LinearAlgebra
-# using Markdown
-# import CommonSolve
-# import CommonSolve: solve
-# import CommonEq
-# import CommonEq: Eq, Lt, Le, Ne, Ge, Gt, ⩵, ≪, ≦, ≧,≫
-
-# import Base: show
-# import Base: convert, promote_rule
-# import Base: getproperty
-# import Base: hash, ==
-# import Base: length, size
-# import Base.iterate
-# import Base: +, -, *, /, //, \, ^
-
-# export @vars, Sym, sympify, symbols, @symfuns, @syms
-# export SymMatrix, SymFunction
-# export PI, IM, oo, zoo, True, False
-# export N, subs, doit
-
-# export sympy, sympy_core, sympy_matrices, import_from#, import_sympy
-# export free_symbols
+export hello_world, scaled_mean, add_total
 
 
-# include("types.jl")
-# include("decl.jl")
-# include("constructors.jl")
-# include("utils.jl")
-# include("numbers.jl")
-# include("mathops.jl")
-# include("mathfuns.jl")
-# include("generic.jl")
-# include("matrix.jl")
-# include("sets.jl")
-# include("symfunction.jl")
-# include("assumptions.jl")
-# include("lambdify.jl")
-# include("patternmatch.jl")
-# include("permutations.jl")
-# include("plot_recipes.jl")
-# include("latexify_recipe.jl")
+# -------------------------------------------------------------------------
 
-# ##################################################
+export r_available
 
-# pynull() = PyCall.PyNULL()
-# """
-#     sympy
+"""
+    r_available() -> Bool
 
-# Variable from `pyimport("sympy")`. Numerous methods are available through Python's dot-call syntax.
-# """
-# const sympy  = PyCall.PyNULL()
-# """
-#     sympy_core
+Return `true` if an R executable is discoverable through PATH.
+This does not verify that R can start successfully.
+"""
+function r_available()::Bool
+    Sys.which("R") !== nothing
+end
 
-# Variable from `pyimport("sympy.core")`.
-# """
-# const sympy_core =  PyCall.PyNULL()
-# """
-#     sympy_matrices
+"""
+    r_works() -> Bool
 
-# Variable from `pyimport("sympy.matrices")`.
-# """
-# const sympy_matrices =  PyCall.PyNULL()
-# const mpmath = PyCall.PyNULL()
-# const combinatorics  = PyCall.PyNULL()
+Return `true` if R can be launched and reports its version.
+"""
+function r_works()::Bool
+    r = Sys.which("R")
+    isnothing(r) && return false
 
-# # core.sympy.numbers.*
-# "PI is symbolic `pi`"
-# global PI = Sym(pynull())
-# "IM is a symbolic `im`"
-# global IM = Sym(pynull())
-# "oo is a symbolic infinity. Example: `integrate(exp(-x), x, 0, oo)`."
-# global oo = Sym(pynull())
-# "zoo complex inifinity"
-# global zoo = Sym(pynull())
-# "True from SymPy"
-# global True = Sym(pynull())
-# "False from SymPy"
-# global False = Sym(pynull())
+    try
+        run(pipeline(`$r --version`, devnull))
+        return true
+    catch
+        return false
+    end
+end
 
 
+##
+# RCall.jl extension
+# see: `ext/DveRCallExt.jl`
 
-# # Can not actually initiate many things until `sympy` is defined, so not until runtime
-# function __init__()
-
-#     ## Define sympy, mpmath, ...
-#     copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
-#     copy!(sympy_core, PyCall.pyimport("sympy.core"))
-#     copy!(sympy_matrices, PyCall.pyimport("sympy.matrices"))
-#     copy!(PI.__pyobject__,  sympy.pi)
-#     copy!(IM.__pyobject__, sympy.I)
-#     copy!(oo.__pyobject__, sympy.oo)
-#     copy!(zoo.__pyobject__, sympy.zoo)
-#     copy!(True.__pyobject__, PyCall.PyObject(true))
-#     copy!(False.__pyobject__, PyCall.PyObject(false))
+function rcall_extension_loaded()::Bool
+    Base.get_extension(Dve, :DveRCallExt) !== nothing
+end
 
 
-#     # mpmath
-#     try
-#         PyCall.mpmath_init()
-#         copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))
-#     catch err
-#        # can't load
-#     end
+"Convert an R object to a DataFrame. Methods are added by the RCall extension."
+function from_r end
 
-#     # pull in alibrary
-#     copy!(combinatorics, PyCall.pyimport_conda("sympy.combinatorics", "sympy"))
+"Convert a DataFrame to an R object. Methods are added by the RCall extension."
+function to_r end
+
+# -------------------------------------------------------------------------
 
 
-#     ## mappings from PyObjects to types.
-#     ## order here is fussy, as we needed ImmutableMatrix before Basic
-#     pytype_mapping(sympy_matrices.ImmutableMatrix, SymMatrix)
-#     pytype_mapping(sympy_matrices.ImmutableDenseMatrix, SymMatrix)
+"""
+    hello_world(salutation, who) -> String
 
-#     basictype = sympy_core.basic.Basic
-#     pytype_mapping(basictype, Sym)
+Return a formatted greeting, e.g. `hello_world("Hello", "Julia") == "Hello, Julia!"`.
+"""
+function hello_world(salutation::AbstractString, who::AbstractString)
+    isempty(strip(salutation)) && throw(ArgumentError("salutation must not be empty"))
+    return string(salutation, ", ", who, "!")
+end
 
-#     pytype_mapping(sympy_matrices.Matrix, Matrix{Sym})
-#     pytype_mapping(sympy_matrices.MatrixBase, Matrix{Sym})
-#     pytype_mapping(sympy_matrices.MutableDenseMatrix, Matrix{Sym})
+"Mean of `v` multiplied by `factor` (primitive/vector example for the bridges)."
+scaled_mean(v::AbstractVector{<:Real}, factor::Real = 1) = mean(v) * factor
 
-#     pytype_mapping(sympy.FiniteSet, Set)
+"""
+    add_total(tbl) -> DataFrame
 
-#     pytype_mapping(sympy.combinatorics.permutations.Permutation, SymPermutation)
-#     pytype_mapping(combinatorics.perm_groups.PermutationGroup, SymPermutationGroup)
+Accept any Tables.jl-compatible table with numeric columns `x` and `y`,
+return a new `DataFrame` with an extra column `total = x + y`.
+"""
+function add_total(tbl)
+    df = DataFrame(tbl)          # copies columns by default
+    df.total = df.x .+ df.y
+    return df
+end
 
-#     if mpmath != PyCall.PyNULL()
-#         ## ignore warnings for now...
-#         mpftype = mpmath."mpf"
-#         pytype_mapping(mpftype, BigFloat) ## Raises warning!!!
-#         mpctype = mpmath."mpc"
-#         pytype_mapping(mpctype, Complex{BigFloat})
-#     end
-
-
-
-#     ## We *would* like to import some methods from the `sympy` module, but we can't as calling
-#     ## @eval to import from a different package causes precompilation issues.
-#     ## Rather, we only call `import_sympy` to print a list of commands to add to this file (as
-#     ## are added below). This is done by uncommenting the `println` statements in `import_from`.
-#     #import_sympy()
-
-# end
-
-
-# ## On load, generic functions in the base modules that match a function in sympy.* are
-# ## defined on `Sym` objects, as are those listed here:
-# ##
-# priviledged = (:And, :Or, :Not, :Xor,
-#                #
-#                :apart, :cancel, :cse, :expand, :factor, :flatten, :nsimplify,
-#                :isolate, :simplify, :together, :unflatten,
-#                #
-#                :srepr,:doit,
-#                #
-#                :integrate, :line_integrate, :interpolate, :limit, :series, :summation,
-#                :hessian,
-#                #
-#                :prime, :multiplicity, :degree, :coeffs,
-#                #
-#                :DiracDelta, :Heaviside,
-#                #
-#                :linsolve, :nonlinsolve, :nroots, :nsolve, :pdsolve, :real_root,
-#                :real_roots, :root, :rootof, :roots, :rsolve, :solve, :solveset,
-#                :ode_order,
-#                #
-#                :Min, :Max, :Abs,:numer, :denom, :conjugate, :ln,
-#                #
-#                :intersection, :intervals, :isprime
-
-#                )
-
-
-# function in_base(uv)
-#     u = Symbol(uv[1])
-#     for M in base_Ms
-#         isdefined(M, u) && return true
-#     end
-#     false
-# end
-# is_function(uv) = SymPy.pycall_hasproperty(uv[2], :__class__) &&  occursin("unction", uv[2].__class__.__name__)
-
-
-
-# """
-#     import_sympy
-
-# This method imports all functions from `mpmath` and a priviledged set
-# of functions from `sympy`, as well as the relational operators.
-
-# These functions are narrowed on their first argument being of type `SymbolicObject`.
-
-# A few modules are checked for namespace collisions.
-
-# If a function naturally takes an non-Symbolic argument as a first argument, then it can be qualified: e.g.
-# `sympy.sin(2)` (as opposed to `sin(Sym(2))`).
-
-# If a constructor is needed (which is not a function) then it must be
-# qualified. (E.g. `sympy.Function("F")`, though for this particular
-# case, there is `SymFunction` defined for convenience.)
-
-# """
-# function import_sympy()
-#     if mpmath != PyCall.PyNULL()
-#         mps = _get_member_functions(mpmath, base_exclude)
-#         sps = Introspection.getmembers(sympy)
-#         imp = Tuple(Symbol.(setdiff(keys(mps), keys(sps))))
-#         import_from(mpmath, imp)
-#     end
-#     ## import from
-#     ## import_from(sympy)
-#     d = Introspection.getmembers(sympy)
-#     d1 = filter(uv -> in_base(uv) && is_function(uv), d)
-#     import_from(sympy, setdiff(Symbol.(collect(keys(d1))),  Symbol.(base_exclude)))
-#     import_from(sympy, priviledged)
-#     import_from(sympy, (:Ne, :Lt, :Le, :Eq, :Ge, :Gt,
-#                         :GreaterThan, :LessThan,
-#                         :StrictGreaterThan, :StrictLessThan,
-#                         :Equality, :Unequality
-#                         ), typ=:Number)
-# end
-
-
-
-# ### Add generic methods and new methods
-# include("importexport.jl")
 
 end # module

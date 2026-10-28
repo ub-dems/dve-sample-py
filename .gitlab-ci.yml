@@ -3,8 +3,8 @@
 #
 # Shared release pipeline for the dve-simple-py codebase.
 # This exact file lives in both projects:
-#   - ub-dems/dve-simple-py        (private downstream fork, branches main/development)
-#   - ub-dems-public/dve-simple-py (public upstream, branch main)
+#   - ub-dems/dve-simple-py (private downstream fork, branches main/development)
+#   - ub-dems/dve-simple-py (public upstream, branch main)
 #
 # The pipeline is tag-triggered (v*.*.*) and splits into two cooperating
 # pipeline RUNS in two different projects:
@@ -103,8 +103,8 @@ stages:
 default:
   # see: https://docs.gitlab.com/ci/runners/hosted_runners/linux/
   tags:
-    - saas-linux-small-amd64
-    # - saas-linux-medium-amd64
+    # - saas-linux-small-amd64
+    - saas-linux-medium-amd64
     # - saas-linux-large-amd64
     # - saas-linux-xlarge-amd64
     # - saas-linux-2xlarge-amd64
@@ -501,8 +501,8 @@ config-int:
     - .ctx-default-config
     - .git-full
   script:
+    - cat "$[[ inputs.gd-dotenv-default ]]" | grep '^[a-zA-Z0-9_]' > "$[[ inputs.gd-dotenv-strict ]]"
     - cp "$[[ inputs.gd-dotenv-default ]]" "$[[ inputs.gd-dotenv-file ]]" || true
-    - cat "$[[ inputs.gd-dotenv-file ]]" | grep '^[a-zA-Z0-9_]' > "$[[ inputs.gd-dotenv-strict ]]"
   artifacts:
     reports:
       dotenv: "$[[ inputs.gd-dotenv-strict ]]"
@@ -1112,7 +1112,7 @@ package-build-images:
 # -----------------------------------------------------------------------------
 # Stage: image-push (upstream only)
 # -----------------------------------------------------------------------------
-# Project scope    : upstream only (ub-dems-public/dve-simple-py)
+# Project scope    : upstream only (ub-dems/dve-simple-py)
 # Trigger condition: tag *.*.* (workflow:rules) AND upstream project path;
 # Required vars    : GS_REGISTRY_URL, GS_REGISTRY_USER, GS_REGISTRY_PASSWORD
 

@@ -83,12 +83,13 @@ function env_dump() {
 
 # a function to install apt packages only if they are not installed
 function apt_install() {
-    if ! dpkg -s "$@" >/dev/null 2>&1; then
-        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-            apt-get update
-        fi
-        apt-get install -y --no-install-recommends "$@"
-    fi
+        aq=" -qq -o=Dpkg::Use-Pty=0 "
+	if ! dpkg -s "$@" >/dev/null 2>&1; then
+		if [ "$(find /var/lib/apt/lists/* 2> /dev/null | wc -l)" = "0" ]; then
+			apt-get update $aq
+		fi
+		apt-get install $aq -y --no-install-recommends "$@"
+	fi
 }
 
 function install_utils_sys() {
@@ -142,6 +143,14 @@ function install_utils_cran() {
     
 }
 
+function install_apps_starship() {
+
+    [ "$Y_BASE_APPS_STARSHIP" = 1 ] || return 0
+
+    curl -fsSL https://starship.rs/install.sh | bash --posix -s -- --yes
+    
+}
+
 
 function install_apps_emacs() {
 
@@ -171,8 +180,11 @@ function install_apps_cursor() {
     echo "deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/cursor.gpg] https://downloads.cursor.com/aptrepo stable main" \
         | sudo tee /etc/apt/sources.list.d/cursor.list > /dev/null
 
+    aq=" -qq -o=Dpkg::Use-Pty=0 "
+    
     # Update and install
-    apt update
+    apt-get update $aq
+    
     
     apt_install \
         cursor
@@ -193,8 +205,10 @@ function install_apps_antigravity() {
     echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main" | \
         sudo tee /etc/apt/sources.list.d/antigravity.list > /dev/null    
 
+    aq=" -qq -o=Dpkg::Use-Pty=0 "
+    
     # Update and install
-    apt update
+    apt-get update $aq
     
     apt_install \
         antigravity
@@ -215,6 +229,7 @@ function install_utils() {
 
 function install_apps() {
     
+    install_apps_starship
     install_apps_emacs
     install_apps_cursor
     install_apps_antigravity

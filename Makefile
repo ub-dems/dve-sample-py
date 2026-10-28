@@ -60,6 +60,17 @@ PY_RUN := ${UV} run
 SHELL := /bin/bash
 RSCRIPT := ${PY_RUN} Rscript
 #POETRY := poetry
+JULIA := ${PY_RUN} julia
+
+# ---(gpu)------------------------------------------------
+
+X_HAS_GPU := $(shell (type nvidia-smi && nvidia-smi -L) &> /dev/null  && echo 1 || echo 0)
+
+ifeq (${X_HAS_GPU},1)
+X_UV_EXTRA := gpu
+else
+X_UV_EXTRA := cpu
+endif
 
 
 #}}} \\\
@@ -83,14 +94,20 @@ start:
 test: # @HELP/base runs: `devtools::test()`
 test: init
 	${PY_RUN}  'pytest' || true
-	${RSCRIPT} -e 'devtools::test()'
+	command -v julia &> /dev/null && ${JULIA} --project=@. -e 'using Pkg; Pkg.test()'
+	command -v R &> /dev/null && ${RSCRIPT} -e 'devtools::test()'
 
 
-check: # @HELP/base runs: ruff check
+check: # @HELP/base runs: `devtools::check()`
 check: init
 	@echo "+++ {{{ CHECK /////////";
-	@echo "+++ Running UV sync......"; $(UV) sync || true
-	@echo "+++ Running Ruff check..."; $(UV) run ruff check || true
+	@echo "+++ Showing UV sync .........."; echo "$(UV) sync --extra=$X_UV_EXTRA --all-groups  --no-progress" || true
+	@echo "+++ Running REUSE lint........"; $(UV) run reuse lint || true
+	@echo "+++ Running Pyright check....."; $(UV) run basedpyright || true
+	@echo "+++ Running Ruff check........"; $(UV) run ruff check || true
+	@command -v R &> /dev/null && echo "+++ Running renv::status......"; ${RSCRIPT} -e 'renv::status()'
+	@command -v R &> /dev/null && echo "+++ Running devtools::doc....."; ${RSCRIPT} -e 'devtools::document()'
+	@command -v R &> /dev/null && echo "+++ Running devtools::check..."; ${RSCRIPT} -e 'devtools::check()'
 	@echo "+++ }}} CHECK \\\\\\\\\ ";
 
 docs: # @HELP/base make: "man,readme,vignettes"  targets
@@ -98,16 +115,19 @@ docs: man readme vignettes
 
 man: # @HELP/base runs: make sphinx
 man: init
-	cd ${DOC_MAKE_DIR} && $(MAKE) $@
+	@echo cd ${DOC_MAKE_DIR} && $(MAKE) $@
 
 vignettes: # @HELP/base runs: `devtools::build_vignettes()`
 vignettes: 
 	${RSCRIPT} -e 'devtools::build_vignettes()'
 
-README.rst: 
+README.md: README.Rmd
+	@echo Rscript -e 'devtools::load_all(); knitr::knit("README.Rmd")'
+	@echo sed -i.bak 's/[[:space:]]*$$//' $@
+	@echo rm -f $@.bak
 
 readme: # @HELP/base runs: `knitr::knit("README.Rmd")` 
-readme: README.rst
+readme: README.md
 
 format: # @HELP/baseformat code with black
 format: 
@@ -145,7 +165,10 @@ uninstall:
 
 status: # @HELP/base runs: `poetry show` and `renv::diagnostics()`
 status:
+	${UV} 'tree'
 	${UV} 'pip' 'list'
+	${RSCRIPT} -e 'reticulate::py_discover_config(required_module = NULL, use_environment = NULL)'
+	${RSCRIPT} -e 'reticulate::py_config()'
 	${RSCRIPT} -e 'renv::diagnostics()'
 
 clean: # @HELP/base clean all files in .gitignore
@@ -208,11 +231,11 @@ build-help: help/build
 full: # @HELP/build project environment initializaion after checkout 
 full:  init
 full:  build-setup
-full:  runtime-setup
 full:  runtime-environ
+full:  runtime-setup
 full:  runtime-test
-full:  runtime-check
 full:  runtime-status
+full:  runtime-check
 
 full-help: help/full
 
@@ -252,12 +275,13 @@ build-validate:
 
 .PHONY: runtime-repl runtime-rs
 .PHONY: runtime-pyrun runtime-ipython
-.PHONY: runtime-auto runtime-cli runtime-shell
+.PHONY: runtime-jrun runtime-julia
+.PHONY: runtime-auto runtime-cli runtime-shell  runtime-raw
 .PHONY: runtime-upgrade runtime-setup runtime-clear
 .PHONY: runtime-test runtime-check runtime-status
 .PHONY: runtime-environ runtime-profile
 .PHONY: runtime-build
-.PHONY: rruntime-dev runtime-code runtime-cursor runtime-antigravity
+.PHONY: runtime-dev runtime-code runtime-cursor runtime-antigravity
 .PHONY: runtime-rstudio runtime-lab runtime-notebook
 .PHONY: runtime-command runtime-term runtime-xterm runtime-help
 
@@ -277,6 +301,14 @@ runtime-pyrun: # @HELP/runtime ...
 runtime-pyrun:
 	cd ${IMG_MAKE_DIR} && $(MAKE) $@
 
+runtime-julia: # @HELP/runtime ...
+runtime-julia:
+	cd ${IMG_MAKE_DIR} && $(MAKE) $@
+
+runtime-jrun: # @HELP/runtime ...
+runtime-jrun:
+	cd ${IMG_MAKE_DIR} && $(MAKE) $@
+
 runtime-auto: # @HELP/runtime ...
 runtime-auto:
 	cd ${IMG_MAKE_DIR} && $(MAKE) $@
@@ -287,6 +319,10 @@ runtime-cli:
 
 runtime-shell: # @HELP/runtime ...
 runtime-shell:
+	cd ${IMG_MAKE_DIR} && $(MAKE) $@
+
+runtime-raw: # @HELP/runtime ...
+runtime-raw:
 	cd ${IMG_MAKE_DIR} && $(MAKE) $@
 
 runtime-clear: # @HELP/runtime ...

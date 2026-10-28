@@ -1,3 +1,3 @@
 library(testthat)
 
-test_check("dvesimplepy")
+test_check("dvesimpler")
