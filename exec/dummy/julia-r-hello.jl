@@ -11,61 +11,9 @@
 
 using ArgParse
 using Printf
-using Dve
-
 using Pkg
-
+using Dve
 using RCall
-
-
-
-
-
-
-
-r_salutation = "Hi"
-
-# 1. Interpolate Julia variables directly into the R expression
-r_hello = R"({
-    devtools::load_all('.')
-    dmy_hello(salutation = $r_salutation)
-})"
-
-print("r_hello=")
-println(rcopy(r_hello)) # Safely convert back to a native Julia object
-
-
-# 2. For calling Julia from R via JuliaCall inside the script:
-"""R
-library(JuliaCall)
-julia_setup()
-"""
-
-# """R
-# julia_library("Pkg")
-# # Pass values explicitly or evaluate cleanly
-# jl_status <- julia_eval("Pkg.status()")
-# print("R>", "jl_status", jl_status)
-# """
-
-
-jl_hello = R"""({
-         library(JuliaCall)
-         julia_setup()
-         julia_library("Dve")
-         jl_hello <- julia_call("Dve.hello_world","Bonjour","Marianne")
-         print(c("R>", "jl_hello", jl_hello))
-         jl_hello
-})"""
-
-print("jl_hello=")
-println(rcopy(jl_hello))
-
-
-
-
-
-
 
 function parse_cli(args)
     s = ArgParseSettings(description = """
@@ -91,9 +39,9 @@ function parse_cli(args)
         ./exec/dummy/julia-r-hello.jl Alice Bob
         ./exec/dummy/julia-r-hello.jl -F Alice Bob
         ./exec/dummy/julia-r-hello.jl -P Alice Bob
-        ./exec/dummy/julia-r-hello.jl -v -s 'Bonjour'  Alice Bob
-        ./exec/dummy/julia-r-hello.jl -v -F -s 'Bonjour'  Alice Bob
-        ./exec/dummy/julia-r-hello.jl -v -P -s 'Bonjour'  Alice Bob
+        ./exec/dummy/julia-r-hello.jl -v -s 'Hi'  Alice Bob
+        ./exec/dummy/julia-r-hello.jl -v -F -s 'Hi'  Alice Bob
+        ./exec/dummy/julia-r-hello.jl -v -P -s 'Hi'  Alice Bob
         ./exec/dummy/julia-r-hello.jl --demo
         ./exec/dummy/julia-r-hello.jl --help
 
@@ -158,9 +106,6 @@ function show_r_status()
     r_sessioninfo = rcall(:sessionInfo)
     @printf "r_sessioninfo=%s\n" r_sessioninfo
 
-    jmtcars = reval("mtcars");
-    println(names(jmtcars))
-    
 end
 
 function rcall_demo()
@@ -168,7 +113,17 @@ function rcall_demo()
     r_sum = rcall(:sum, Float64[1.0, 4.0, 6.0])
     @printf "r_sum=%s\n" r_sum
     
+    jmtcars = reval("mtcars");
+    println(names(jmtcars))
     
+end    
+
+function start_r_session()
+
+    # RCall = @eval using RCall
+    # # Load all R libraries that may load native code from the Conda environment here
+    # return RCall    
+
 end    
 
 
@@ -184,8 +139,8 @@ function init_julia_session_cb()
 
 """R
 library(JuliaCall)
-# julia_setup() ### disable julia session nesting
-# julia_library("Dve")
+julia_setup() ### disable julia session nesting
+julia_library("Dve")
 """
     
 end    
@@ -202,7 +157,7 @@ end
 
 function hello_from_r(salutation, who)
 
-    r_allo = rcall(:dmy_hello, "Bonjour", "Marianne")
+    r_allo = rcall(:dmy_hello, "Marianne", "Bonjour")
     @printf "r_allô=%s\n" r_allo
 
     
@@ -229,10 +184,10 @@ end
 function hello_from_julia_cb(salutation, who)
 
 jl_hello = R"""({
-         # library(JuliaCall)
-         # julia_setup()
-         # julia_library("Dve")
-         jl_hello <- julia_call("Dve.hello_world","Bonjour","Marianne")
+         library(JuliaCall)
+         julia_setup()
+         julia_library("Dve")
+         jl_hello <- julia_call("Dve.hello_world","Hallo","Marlene")
          print(c("R>", "jl_hello", jl_hello))
          jl_hello
 })"""
@@ -245,9 +200,9 @@ end
 function hello_from_julia_px(salutation, who)
 
 jl_hello = R"""({
-         # library(JuliaConnectoR)
-         # juliaImport("Dve")
-         jl_hello <- juliaCall("Dve.hello_world","Bonjour","Marianne")
+         library(JuliaConnectoR)
+         juliaImport("Dve")
+         jl_hello <- juliaCall("Dve.hello_world","Hallo","Marlene")
          print(c("R>", "jl_hello", jl_hello))
          jl_hello
 })"""
@@ -302,12 +257,17 @@ function process(opts)
 
     if verbose
         show_julia_status()
+    end
+
+    if verbose
         show_r_status()
     end    
 
     if demo
-        show_julia_status()
+        rcall_demo()
     end
+
+    init_r_session()
 
     hello_from_julia(salutation, who)        
     
