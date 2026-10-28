@@ -50,10 +50,41 @@ C_IWhite='\033[0;97m'
 C_UWhite='\033[4;37m'
 C_BIWhite='\033[1;97m'
 
+exit_colors() {
+
+    echo -e "${C_Green}  Green        ${C_OFF}"
+    echo -e "${C_IGreen}  IGreen       ${C_OFF}"
+    echo -e "${C_Blue}  Blue         ${C_OFF}"
+    echo -e "${C_BBlue}  BBlue        ${C_OFF}"
+    echo -e "${C_UBlue}  UBlue        ${C_OFF}"
+    echo -e "${C_On_Blue}  On_Blue      ${C_OFF}"
+    echo -e "${C_IBlue}  IBlue        ${C_OFF}"
+    echo -e "${C_On_IBlue}  On_IBlue     ${C_OFF}"
+    echo -e "${C_BIBlue}  BIBlue       ${C_OFF}"
+    echo -e "${C_BCyan}  BCyan        ${C_OFF}"
+    echo -e "${C_ICyan}  ICyan        ${C_OFF}"
+    echo -e "${C_UCyan}  UCyan        ${C_OFF}"
+    echo -e "${C_BICyan}  BICyan       ${C_OFF}"
+    echo -e "${C_BYellow}  BYellow      ${C_OFF}"
+    echo -e "${C_IYellow}  IYellow      ${C_OFF}"
+    echo -e "${C_BIYellow}  BIYellow     ${C_OFF}"
+    echo -e "${C_BRed}  BRed         ${C_OFF}"
+    echo -e "${C_IRed}  IRed         ${C_OFF}"
+    echo -e "${C_URed}  URed         ${C_OFF}"
+    echo -e "${C_BIRed}  BIRed        ${C_OFF}"
+    echo -e "${C_BWhite}  BWhite       ${C_OFF}"
+    echo -e "${C_IWhite}  IWhite       ${C_OFF}"
+    echo -e "${C_UWhite}  UWhite       ${C_OFF}"
+    echo -e "${C_BIWhite}  BIWhite      ${C_OFF}"
+
+    exit 0
+    
+}
+
 # ---(logs)------------------------------------------------
 CLOG=""
 LCTX="-"
-LOG_LOGGER="$(basename $0 .sh)"
+LOG_LOGGER="$(basename "$0" .sh)"
 LOG_WHO="${IMG_TYPE:-'----'}"
 LOG_LEVEL=""
 function _log() {
@@ -65,30 +96,30 @@ function _log() {
     llev=$(printf '%-5s' ${LOG_LEVEL:-'LOG'})
     mess="${C_IGreen}$(date '+%Y-%m-%d %H:%M:%S %s') ${C_OFF}${CLOG}| $lwho | $lcat | $llev | ${LCTX} | $$ | $* ${C_OFF}"
 
-    echo -e ${mess}
+    echo -e "${mess}"
     
 }
-debug() { LOG_LEVEL='DEBUG' CLOG="$C_Green"   _log $*; }
-info()  { LOG_LEVEL='INFO.'  CLOG="$C_BICyan"  _log $*; }
-warn()  { LOG_LEVEL='WARN.'  CLOG="$C_BYellow" _log $*; }
-error() { LOG_LEVEL='ERROR' CLOG="$C_IRed"    _log $*; }
-fatal() { LOG_LEVEL='FATAL' CLOG="$C_BIRed"   _log $*; }
-log()   { LOG_LEVEL='_LOG_'   CLOG="$C_BBlue"   _log $*; }
-die ()  { fatal $*; exit 1; }
+debug() { LOG_LEVEL='DEBUG' CLOG="$C_Green"   _log "$*"; }
+info()  { LOG_LEVEL='INFO.'  CLOG="$C_BICyan"  _log "$*"; }
+warn()  { LOG_LEVEL='WARN.'  CLOG="$C_BYellow" _log "$*"; }
+error() { LOG_LEVEL='ERROR' CLOG="$C_IRed"    _log "$*"; }
+fatal() { LOG_LEVEL='FATAL' CLOG="$C_BIRed"   _log "$*"; }
+log()   { LOG_LEVEL='_LOG_'   CLOG="$C_BBlue"   _log "$*"; }
+die ()  { fatal "$*"; exit 1; }
 
 # ---(env)------------------------------------------------
 function env_dump() {
 
     [ "$Y_DEBUG_ENV" = 1 ] || return 0
     
-    echo "+++> #ENV($0): $@"
+    echo "+++> #ENV($0): $*"
     echo "+++: #ENV($0): set"
     set | grep '^Y_' | sort
     echo "+++: #ENV($0): env"
     env | sort
     echo "+++: #ENV($0): path"
     echo "PATH=$PATH"
-    echo "+++<  #ENV($0): $@"
+    echo "+++<  #ENV($0): $*"
     
 }
 
@@ -159,10 +190,10 @@ function init_home_ssh() {
     ###   ssh-config
 
     if [ -d ~/.ssh ]; then
-        mkdir -p   ~/.ssh.bk/$T
+        mkdir -p   ~/.ssh.bk/"$T"
         chmod 700  ~/.ssh.bk
-        chmod 700  ~/.ssh.bk/$T
-        cp -rpv    ~/.ssh ~/.ssh.bk/$T
+        chmod 700  ~/.ssh.bk/"$T"
+        cp -rpv    ~/.ssh ~/.ssh.bk/"$T"
         warn "backup existing ~/.ssh ~/ssh.bk/$T"
     fi
 
@@ -192,8 +223,8 @@ function init_home_git() {
 
     git config --global
 
-    git config --global user.name $Y_BASE_META_USER
-    git config --global user.email $Y_BASE_META_MAIL
+    git config --global user.name "$Y_BASE_META_USER"
+    git config --global user.email "$Y_BASE_META_MAIL"
     git config --global push.default simple
     git config --global diff.ignoreSubmodules dirty
     git config --global credential.helper store
@@ -260,22 +291,39 @@ function init_rstudio_config() {
 }
 
 function init_rstudio_service() {
+
+    # @deprecated: rootless mode supported in rocker images
     
     sed -i 's/"$USER" != "$DEFAULT_USER"/ "$USER" != "$DEFAULT_USER" -a "$USER" != "root"/g'      \
         /etc/cont-init.d/02_userconf
 
-    ex /etc/cont-init.d/02_userconf  << 'EOEX'
-/check_user_id=.*auth-minimum-user-id/
-d2
-i
-  check_user_id="$(grep '^auth-minimum-user-id' /etc/rstudio/rserver.conf | sed  's/^.*= *\([[:graph:]]*\).*/\1/')"
-  if [[ "$check_user_id" = '0' ]]; then
-     echo "root user already authorized in /etc/rstudio/rserver.conf: $check_user_id, not changed" 
-  elif [[ -n $check_user_id ]]; then
-.
-w!
-q
-EOEX
+    check_user_id="$(grep '^auth-minimum-user-id' /etc/rstudio/rserver.conf | sed  's/^.*= *\([[:graph:]]*\).*/\1/')"
+    if [[ "$check_user_id" = '0' ]]; then
+        echo "root user already authorized in /etc/rstudio/rserver.conf: $check_user_id, not changed" 
+    elif [[ -n $check_user_id ]]; then
+
+        vim -es --ex /etc/cont-init.d/02_userconf \
+            +"/check_user_id=.*auth-minimum-user-id/" \
+            +"d2" \
+            +"i" \
+            +"check_user_id=${check_user_id}" \
+            +"." \
+            +"w!" \
+            +"q"
+    fi    
+
+#     ex /etc/cont-init.d/02_userconf  << 'EOEX'
+# /check_user_id=.*auth-minimum-user-id/
+# d2
+# i
+#   check_user_id="$(grep '^auth-minimum-user-id' /etc/rstudio/rserver.conf | sed  's/^.*= *\([[:graph:]]*\).*/\1/')"
+#   if [[ "$check_user_id" = '0' ]]; then
+#      echo "root user already authorized in /etc/rstudio/rserver.conf: $check_user_id, not changed" 
+#   elif [[ -n $check_user_id ]]; then
+# .
+# w!
+# q
+# EOEX
 
     
 }
@@ -319,13 +367,112 @@ function init_rstudio() {
     
     [ "$Y_BASE_INIT_RSTUDIO" = 1 ] || return 0
     
-    init_rstudio_config
-    init_rstudio_service
-    init_rstudio_logging
-    init_rstudio_environ
+    # init_rstudio_config
+    # init_rstudio_service
+    # init_rstudio_logging
+    # init_rstudio_environ
     
 }
 
+function init_r_ldconfig() {
+
+    [ "$Y_R_LD_CONFIG" = 1 ] || return 0
+    
+    ls -l /etc/ld.so.conf.d
+
+
+    printf '%s\n' /usr/local/lib/R/lib \
+           > /etc/ld.so.conf.d/r-runtime.conf
+           
+    ldconfig
+
+    ldd /usr/local/lib/R/library/utils/libs/utils.so
+    
+    
+}
+
+function init_r_ldconfig() {
+
+    [ "$Y_RE_LD_CONFIG" = 1 ] || return 0
+    
+    [ ! -f /etc/ld.so.conf.d/r-runtime.conf ] || return 0
+    
+    ls -l /etc/ld.so.conf.d
+
+
+    printf '%s\n' /usr/local/lib/R/lib \
+           >> /etc/ld.so.conf.d/r-runtime.conf
+           
+    ldconfig
+
+    ldd /usr/local/lib/R/library/utils/libs/utils.so
+    
+    
+}
+
+function init_r_ldpaths() {
+
+    [ "$Y_RE_LD_PATHS" = 1 ] || return 0
+
+    [ -f /usr/local/lib/R/etc/ldpaths ] || return 0
+
+    sed -i \
+        's|"/usr/local/lib:/usr/lib/x86_64-linux-gnu"|""|' \
+        /usr/local/lib/R/etc/ldpaths    
+
+    grep -n 'R_LD_LIBRARY_PATH' /usr/local/lib/R/etc/ldpaths
+    
+    
+}
+
+
+
+
+function init_r() {
+    
+    [ "$Y_BASE_INIT_R" = 1 ] || return 0
+    
+    init_r_ldconfig
+    init_r_ldpaths
+    
+}
+
+
+
+function init_ju_ldconfig() {
+
+    [ "$Y_JU_LD_CONFIG" = 1 ] || return 0
+    
+    [ ! -f /etc/ld.so.conf.d/julia-runtime.conf ] || return 0
+    
+    [ -n "${JULIA_ROOT}" ] || return 0
+
+    mkdir -p "${JULIA_ROOT}/lib"
+    
+    ls -l /etc/ld.so.conf.d
+
+    printf '%s\n' "${JULIA_ROOT}/lib" \
+           >> /etc/ld.so.conf.d/julia-runtime.conf
+    
+    # printf '%s\n' "${JULIA_ROOT}/lib/julia" \
+    #        >> /etc/ld.so.conf.d/julia-runtime.conf
+           
+    ldconfig
+
+    # ldd "${JULIA_ROOT}/lib/libjulia.so"
+    
+    
+}
+
+
+
+function init_julia() {
+    
+    [ "$Y_BASE_INIT_JULIA" = 1 ] || return 0
+    
+    init_ju_ldconfig
+    
+}
 
 
 function setenv_rehash() {
@@ -355,7 +502,7 @@ function clean_up() {
 
 function main() {
 
-    env_dump $@
+    env_dump "$@"
     
     [ "$Y_BASE_INIT_APPLY" = 1 ] || return 0
 
@@ -365,7 +512,9 @@ function main() {
 
     init_userconf
     init_profile
-    init_rstudio
+    init_julia
+    init_r
+    # init_rstudio
     init_home
     
     setenv_rehash
@@ -379,5 +528,5 @@ function main() {
 }
     
 
-main $@
+main "$@"
  

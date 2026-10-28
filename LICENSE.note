@@ -1,0 +1,27 @@
+# Licensing and copyright
+
+Copyright (c) 2026, Università degli Studi di Milano-Bicocca.
+
+The R package software is licensed under the GNU General Public License
+version 3 or later (GPL-3.0-or-later).
+
+The repository also contains documentation, research material, and other
+non-software resources which are separately licensed under the Creative
+Commons Attribution 4.0 International license (CC-BY-4.0).
+
+The file-level licensing of repository resources is specified by
+`REUSE.toml` according to the REUSE Specification.
+
+In particular:
+
+* source code and software-related resources are licensed under
+  GPL-3.0-or-later;
+* documentation, research material, and designated data resources are
+  licensed under CC-BY-4.0.
+
+The complete license texts are provided in:
+
+* `LICENSES/GPL-3.0-or-later.txt`
+* `LICENSES/CC-BY-4.0.txt`
+
+The repository conforms to the REUSE Specification.

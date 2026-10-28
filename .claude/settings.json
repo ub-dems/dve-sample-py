@@ -1,3 +1,115 @@
-  {
-    "skills_path": "./.agents/skills"
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git grep:*)",
+      "Bash(git fetch:*)",
+      "Bash(git branch --list:*)",
+      "Bash(git branch --show-current)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run basedpyright:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run --env-file=.env pytest:*)",
+      "Bash(uv run reuse lint:*)",
+      "Bash(uv run Rscript -e 'renv::install()':*)",
+      "Bash(uv run Rscript -e 'renv::upgrade()':*)",
+      "Bash(uv run Rscript -e 'renv::snapshot()':*)",
+      "Bash(uv run Rscript -e 'renv::restore()':*)",
+      "Bash(uv run Rscript -e 'renv::status()':*)",
+      "Bash(uv run Rscript -e 'Rcpp::compileAttributes()':*)",
+      "Bash(uv run Rscript -e 'devtools::test()':*)",
+      "Bash(uv run Rscript -e 'devtools::document()':*)",
+      "Bash(uv run Rscript -e 'devtools::check()':*)",
+      "Bash(uv run ./etc/julia/juliactl.jl lock:*)",
+      "Bash(uv run ./etc/julia/juliactl.jl sync:*)",
+      "Bash(./build.sh build:*)",
+      "Bash(./build.sh test:*)",
+      "Bash(./build.sh check:*)",
+      "Bash(./build.sh docs:*)",
+      "Bash(./runtime.sh status:*)",
+      "Bash(./runtime.sh build:*)",
+      "Bash(./runtime.sh test:*)",
+      "Bash(./runtime.sh check:*)",
+      "Bash(./lab.sh --version)",
+      "Bash(rg:*)",
+      "Bash(fdfind:*)",
+      "Bash(jq:*)",
+      "Bash(markdownlint-cli2:*)"
+    ],
+    "ask": [
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git branch:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(uv lock:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv add:*)",
+      "Bash(uv remove:*)",
+      "Bash(uv run python:*)",
+      "Bash(uv run --env-file=.env python:*)",
+      "Bash(uv run Rscript:*)",
+      "Bash(./build.sh setup:*)",
+      "Bash(./build.sh update:*)",
+      "Bash(./build.sh upgrade:*)",
+      "Bash(./build.sh full:*)",
+      "Bash(./runtime.sh setup:*)",
+      "Bash(./runtime.sh pyrun:*)",
+      "Bash(./runtime.sh rs:*)",
+      "Bash(./setup.sh:*)"
+    ],
+    "deny": [
+      "Read(./home/user/.ssh/**)",
+      "Edit(./home/user/.ssh/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(./.venv*/**)",
+      "Read(./node_modules/**)",
+      "Edit(./uv.lock)",
+      "Edit(./renv.lock)",
+      "Edit(./NAMESPACE)",
+      "Edit(./man/**)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
+      "Bash(./runtime.sh environment:*)",
+      "Bash(./runtime.sh sh:*)",
+      "Bash(./runtime.sh python:*)",
+      "Bash(./runtime.sh R:*)",
+      "Bash(./runtime.sh term:*)",
+      "Bash(./runtime.sh xterm:*)",
+      "Bash(./runtime.sh rstudio:*)",
+      "Bash(./runtime.sh lab:*)",
+      "Bash(./runtime.sh notebook:*)",
+      "Bash(./runtime.sh code:*)",
+      "Bash(./runtime.sh cursor:*)",
+      "Bash(./runtime.sh antigravity:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-paths.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/ruff-format.sh" }
+        ]
+      }
+    ]
   }
+}

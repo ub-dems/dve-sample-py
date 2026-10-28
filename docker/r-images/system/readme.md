@@ -1,0 +1,3 @@
+# GPU setup notes
+
+@deprecated

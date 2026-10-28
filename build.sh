@@ -139,25 +139,22 @@ cat <<'EOF'
 BUILD EXAMPLES
 --------------
 
-```
-
 # full build and tests
-rt=0; F=/tmp/environ-$(date -Isec).log; (./build.sh full) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less $F
+rt=0; F=/tmp/full-$(date -Isec).log; (./build.sh full) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less -RX $F
 
 # container image build
 rt=1; F=/tmp/build-$(date -Isec).log; (./build.sh setup) 2>&1 | tee $F ; echo "rc=$? -- press enter ..."; read z; less -RX $F
 
 # virtual environment library install
-rt=2; F=/tmp/setup-$(date -Isec).log; (./runtime.sh setup) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less $F 
+rt=2; F=/tmp/setup-$(date -Isec).log; (./runtime.sh setup) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less -RX $F 
 
 # user configuration
-rt=3; F=/tmp/environ-$(date -Isec).log; (./runtime.sh environ) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less $F
+rt=3; F=/tmp/environ-$(date -Isec).log; (./runtime.sh environ) 2>&1 | tee $F ; echo "rc=$? -- press enter"; read  z; less -RX $F
 
-```
 
 EOF
 
-exit 1
+exit 0
 
 }
 

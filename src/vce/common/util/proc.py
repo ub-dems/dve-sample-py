@@ -29,7 +29,6 @@ def new_proc_id():
     return ProcGlobals.proc_num
 
 
-# ruff: noqa: PLR0913
 def run_context(
     command, script=None, name=None, parms=None, xargs=None, argv=None, *args, **kwargs
 ):

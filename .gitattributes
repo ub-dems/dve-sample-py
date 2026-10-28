@@ -35,5 +35,14 @@ pom.xml text eol=lf
 *.docx binary
 *.xslx binary
 *.pptx binary
+
+# denote as binary long (dynamic) data file in text formats
+*.ipynb binary
+*.csv binary
+*.tsv binary
+*.Rdata binary
+
+# special merge handling files
+
 /NEWS.md merge=union
 /.Rbuildignore merge=union

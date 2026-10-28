@@ -1,0 +1,36 @@
+# Package `Makevars`
+
+# Seealso: ../etc/R/Makevars
+# Seealso: ~/.R/Makevars
+# Seealso: /etc/R/Makevars
+# Seealso: ../src/Makevars.win
+# Seealso: ../notes/howtos/Rcpp-HOWTO.md
+# Seealso: ../notes/howtos/Rcpp-HOWTO-Q*-*.md
+
+# RcppArmadillo support
+ARMA_CPPFLAGS = -DARMA_USE_CURRENT
+
+
+# RcppEigen support
+# Seealso EIG_CPPPATH in ../etc/R/Makevars
+#EIG_CPPPATH := `$(R_HOME)/bin/Rscript -e "cat(system.file('include', package='RcppEigen'))"`
+EIG_CPPFLAGS = -DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+
+# RcppGSL support
+#GSL_CONFIG_PATH=$(command -v gsl-config || echo "")
+#GSL_CFLAGS=$($GSL_CONFIG_PATH --cflags || "")
+#GSL_LIBS=$($GSL_CONFIG_PATH --libs || "")
+#GSL_CFLAGS=-I/usr/include
+#GSL_LIBS=-L/usr/lib/x86_64-linux-gnu -lgsl -lgslcblas -lm
+GSL_CFLAGS=`$(R_HOME)/bin/Rscript -e "RcppGSL::CFlags()" || ""`
+GSL_LIBS=`$(R_HOME)/bin/Rscript -e "RcppGSL::LdFlags()" || ""`
+
+
+
+
+PKG_CPPFLAGS = -I../inst/include/ -DSTRICT_R_HEADERS $(EIG_CPPFLAGS) $(ARMA_CPPFLAGS)
+
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) $(GSL_CFLAGS)
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(GSL_LIBS)
+
+

@@ -7,9 +7,9 @@ authors = [
 ]
 license = "Academic Free License (AFL) v. 3.0"
 readme = "README.md"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 dynamic = ["dependencies"]
 requires-python = ">=3.10,<3.15"

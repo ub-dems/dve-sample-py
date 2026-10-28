@@ -54,7 +54,7 @@ class ConfigModelTest(unittest.TestCase):
 
     def test_env_lt_defaults(self):
         exp = {
-            "path": "data/int/test",
+            "path": "data/ext/test/demo",
             "database": "demo",
         }
         cfg = conf.get_config()

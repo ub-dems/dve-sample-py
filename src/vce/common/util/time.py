@@ -1,5 +1,5 @@
 from timeit import default_timer
-import datetime
+import datetime as dt
 
 
 class Timer:
@@ -18,7 +18,7 @@ class Timer:
         return elapsed
 
     def __str__(self):
-        return str(datetime.timedelta(self.elapsed()))
+        return str(dt.timedelta(self.elapsed()))
 
 
 def timer():
@@ -26,4 +26,4 @@ def timer():
 
 
 def iso_timestamp():
-    return datetime.datetime.now().astimezone().replace(microsecond=0).isoformat()
+    return dt.datetime.now().astimezone().replace(microsecond=0).isoformat()

@@ -19,7 +19,6 @@ from vce.config.data import cfd
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-# ruff: noqa: C408
 # ruff: noqa: PYI024
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +132,6 @@ def run_proc(ctx, command):
     return rc
 
 
-# ruff: noqa: E501
 def run_para_imm(ctx, command):
     # mp_conf = ctx["mp_conf"]
     command_line = f"""\

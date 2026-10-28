@@ -38,6 +38,37 @@ C_IWhite='\033[0;97m'
 C_UWhite='\033[4;37m'
 C_BIWhite='\033[1;97m'
 
+exit_colors() {
+
+    echo -e "${C_Green}  Green        ${C_OFF}"
+    echo -e "${C_IGreen}  IGreen       ${C_OFF}"
+    echo -e "${C_Blue}  Blue         ${C_OFF}"
+    echo -e "${C_BBlue}  BBlue        ${C_OFF}"
+    echo -e "${C_UBlue}  UBlue        ${C_OFF}"
+    echo -e "${C_On_Blue}  On_Blue      ${C_OFF}"
+    echo -e "${C_IBlue}  IBlue        ${C_OFF}"
+    echo -e "${C_On_IBlue}  On_IBlue     ${C_OFF}"
+    echo -e "${C_BIBlue}  BIBlue       ${C_OFF}"
+    echo -e "${C_BCyan}  BCyan        ${C_OFF}"
+    echo -e "${C_ICyan}  ICyan        ${C_OFF}"
+    echo -e "${C_UCyan}  UCyan        ${C_OFF}"
+    echo -e "${C_BICyan}  BICyan       ${C_OFF}"
+    echo -e "${C_BYellow}  BYellow      ${C_OFF}"
+    echo -e "${C_IYellow}  IYellow      ${C_OFF}"
+    echo -e "${C_BIYellow}  BIYellow     ${C_OFF}"
+    echo -e "${C_BRed}  BRed         ${C_OFF}"
+    echo -e "${C_IRed}  IRed         ${C_OFF}"
+    echo -e "${C_URed}  URed         ${C_OFF}"
+    echo -e "${C_BIRed}  BIRed        ${C_OFF}"
+    echo -e "${C_BWhite}  BWhite       ${C_OFF}"
+    echo -e "${C_IWhite}  IWhite       ${C_OFF}"
+    echo -e "${C_UWhite}  UWhite       ${C_OFF}"
+    echo -e "${C_BIWhite}  BIWhite      ${C_OFF}"
+
+    exit 0
+    
+}
+
 # ---(logs)------------------------------------------------
 CLOG=""
 LCTX="-"
@@ -85,11 +116,12 @@ function env_dump() {
 
 # a function to install apt packages only if they are not installed
 function apt_install() {
+        aq=" -qq -o=Dpkg::Use-Pty=0 "
 	if ! dpkg -s "$@" >/dev/null 2>&1; then
-		if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-			apt-get update
+		if [ "$(find /var/lib/apt/lists/* 2> /dev/null | wc -l)" = "0" ]; then
+			apt-get update $aq
 		fi
-		apt-get install -y --no-install-recommends "$@"
+		apt-get install $aq -y --no-install-recommends "$@"
 	fi
 }
 
@@ -97,14 +129,113 @@ function upgrade_commons_all() {
 
     [ "$Y_BASE_COMMONS_UPGRADE" = 1 ] || return 0
 
-    # Update and install
-    apt-get update
+    aq=" -qq -o=Dpkg::Use-Pty=0 "
     
-    apt-get upgrade -y
-    apt-get autoremove -y
+    # Update and install
+    apt-get update $aq
+    
+    apt-get upgrade -y $aq
+    apt-get autoremove -y $aq
     
     apt_install \
         ca-certificates
+
+}
+
+function unminimize_commons_man() {
+
+    [ "$Y_BASE_COMMONS_UNMINIMIZE" = 1 ] || return 0
+
+    aq=" -qq -o=Dpkg::Use-Pty=0 "
+    
+    yes | sudo unminimize
+    
+    # Update and install
+    apt-get update $aq
+    
+    apt_install \
+        man-db
+
+}
+
+function install_commons_locale() {
+
+    [ "$Y_BASE_COMMONS_LOCALE" = 1 ] || return 0
+
+    echo "# LOCALE: {"
+    
+    echo "- locale arguments:"
+    env | grep -e '^Y_LANG' -e 'Y_LC' | sort
+
+    locale-gen "$Y_LANG"
+    # locale-gen "$Y_LC_ALL"
+    # locale-gen "$Y_LC_MESSAGE"
+    locale-gen "$Y_LC_COLLATE"
+    locale-gen "$Y_LC_NUMERIC"
+    locale-gen "$Y_LC_TIME"
+    locale-gen "$Y_LC_MONETARY"
+    # locale-gen "$Y_LC_MEASUREMENT"
+    # locale-gen "$Y_LC_PAPER"
+
+    update-locale \
+        LC_MESSAGE="$Y_LC_MESSAGE" \
+        LC_COLLATE="$Y_LC_COLLATE" \
+        LC_NUMERIC="$Y_LC_NUMERIC" \
+        LC_TIME="$Y_LC_TIME" \
+        LC_MONETARY="$Y_LC_MONETARY" \
+        LC_MEASUREMENT="$Y_LC_MEASUREMENT" \
+        LC_PAPER="$Y_LC_PAPER" \
+        LANG="$Y_LANG" \
+        LANGUAGE="$Y_LANGUAGE"
+    
+    #   LC_ALL="$Y_LC_ALL" \
+
+    dpkg-reconfigure locales
+
+    echo "- locale available:"
+    locale -a
+
+    echo "- locale active:"
+    ( bash --login -c 'locale' )
+    
+    echo "- locale test:"
+    ( eval $(cat /etc/default/locale)
+      locale
+      printf "date: %s \n" "$(date)"
+      awk '{ printf("float: %.3f \n", 1.61803398) }'
+      awk '{ printf("money: %'"'"'.2f \n", 1234567.89) }'
+    )
+
+    echo "} # LOCALE //"
+}
+
+function install_commons_min() {
+
+    [ "$Y_BASE_COMMONS_MIN" = 1 ] || return 0
+
+	apt_install \
+		curl \
+		gpg \
+                locales \
+                apt-utils
+
+}
+
+function install_commons_dev() {
+
+    [ "$Y_BASE_COMMONS_DEV" = 1 ] || return 0
+
+	apt_install \
+		libgsl-dev \
+		libtbb-dev \
+		libzmq3-dev \
+		libglpk-dev \
+		libncurses5-dev \
+		libtinfo6 \
+                libmagick++-dev \
+	        default-libmysqlclient-dev \
+                cmake \
+                shellcheck
 
 }
 
@@ -113,16 +244,9 @@ function install_commons_sys() {
     [ "$Y_BASE_COMMONS_SYS" = 1 ] || return 0
 
 	apt_install \
-		gpg \
 		apt-file \
-		libgsl-dev \
-		libtbb-dev \
-		libzmq3-dev \
-		libglpk-dev \
-		libncurses5-dev \
-		libtinfo6 \
-		default-libmysqlclient-dev \
 		parallel \
+		lsof \
 		hwloc \
 		tasksel \
 		numactl \
@@ -153,19 +277,33 @@ function install_commons_xwindow() {
                 qterminal \
                 rxvt-unicode \
                 xterm
+        
+        #       ghostty \
+            
 }
 
 function install_commons_fonts() {
 
-	[ "$Y_BASE_COMMONS_FONTS" = 1 ] || return 0
+    [ "$Y_BASE_COMMONS_FONTS" = 1 ] || return 0
 
-	apt_install \
-            fonts-roboto \
-            fonts-open-sans \
-            fonts-cascadia-code \
-            fonts-jetbrains-mono \
-            fonts-firacode \
-            fonts-inconsolata
+    apt_install \
+        fonts-roboto \
+        fonts-open-sans \
+        fonts-cascadia-code \
+        fonts-jetbrains-mono \
+        fonts-firacode \
+        fonts-inconsolata
+
+    for f in \
+        FiraCode \
+            Inconsolata \
+            JetBrainsMono ; do
+        wget -nv https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/$f.zip
+        mkdir -p /usr/local/share/fonts/z-nerd/$f
+        unzip $f.zip -d /usr/local/share/fonts/z-nerd/$f
+        rm $f.zip
+    done
+    fc-cache -fv
 
 }
 
@@ -200,6 +338,9 @@ function install_commons_latex() {
             hyphen-it \
             imagemagick
 
+	apt_install \
+            cups-pdf
+
         
         #       pandoc-filter-diagram \
 
@@ -220,6 +361,7 @@ function install_commons_cran() {
 		usethis \
 		gitcreds \
 		argparse \
+		cffr \
 		cli \
 		here \
 		logging \
@@ -247,6 +389,10 @@ function prepare_commons_mounts() {
 function install_commons() {
 
 	upgrade_commons_all
+	unminimize_commons_man
+	install_commons_min
+	install_commons_locale
+	install_commons_dev
 	install_commons_sys
 	install_commons_xwindow
 	install_commons_fonts

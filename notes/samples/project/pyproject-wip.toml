@@ -14,9 +14,9 @@ authors = [
 ]
 
 [project.urls]
-Documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-Homepage      = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-Repository    = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+Documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+Homepage      = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+Repository    = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 [project.scripts]
 main  = "dve.cli:main"
@@ -452,9 +452,9 @@ requires-python = ">=3.10,<3.15"
 
 # URLs moved from [tool.poetry] to [project.urls] per PEP 621 §3.12
 [project.urls]
-Documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-Homepage      = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-Repository    = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+Documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+Homepage      = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+Repository    = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 [project.scripts]
 main  = "dve.cli:main"
@@ -744,9 +744,9 @@ readme = "README.md"
 requires-python = ">=3.10,<3.15"
 
 [project.urls]
-Documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-Homepage      = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-Repository    = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+Documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+Homepage      = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+Repository    = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 [project.scripts]
 main  = "dve.cli:main"
@@ -1010,7 +1010,7 @@ readme = "README.md"
 requires-python = ">=3.10,<3.15"
 license = { text = "Academic Free License (AFL) v. 3.0" }
 authors = [{ name = "Datalab DEMS", email = "datalab@unimib.it" }]
-urls = { documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home", homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py", repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git" }
+urls = { documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home", homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py", repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git" }
 
 dependencies = [
     "tensorboard",
@@ -1154,7 +1154,7 @@ readme = "README.md"
 requires-python = ">=3.10,<3.15"
 license = { text = "Academic Free License (AFL) v. 3.0" }
 authors = [{ name = "Datalab DEMS", email = "datalab@unimib.it" }]
-urls = { documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home", homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py", repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git" }
+urls = { documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home", homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py", repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git" }
 
 dependencies = [
     "tensorboard",
@@ -1292,9 +1292,9 @@ authors = [
 license = { text = "Academic Free License (AFL) v. 3.0" }
 
 urls = {
-  homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py",
-  documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home",
-  repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+  homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py",
+  documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home",
+  repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 }
 
 dependencies = [
@@ -1471,9 +1471,9 @@ authors = [
 license = { text = "Academic Free License (AFL) v. 3.0" }
 
 urls = {
-  homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py",
-  documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home",
-  repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+  homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py",
+  documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home",
+  repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 }
 
 dependencies = [
@@ -1606,9 +1606,9 @@ authors = [
 ]
 dependencies = []  # dynamic
 dynamic = ["dependencies"]
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
 
 [project.scripts]
 main = "dve.cli:main"
@@ -1827,9 +1827,9 @@ dependencies = [
     "more-itertools",
     "dve-sample-py @ file:../python-rootpath",  # Adjust path to local rootpath clone
 ]
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
 
 [project.scripts]
 main = "dve.cli:main"
@@ -1994,9 +1994,9 @@ authors = [
 ]
 license = "Academic Free License (AFL) v. 3.0"
 readme = "README.md"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 dynamic = ["dependencies"]
 requires-python = ">=3.10,<3.15"
@@ -2554,9 +2554,9 @@ authors = [
 ]
 license = "Academic Free License (AFL) v. 3.0"
 readme = "README.md"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 requires-python = ">=3.10,<3.15"
 
@@ -2938,9 +2938,9 @@ authors = [
 ]
 license = "Academic Free License (AFL) v. 3.0"
 readme = "README.md"
-documentation = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py/-/wikis/home"
-homepage = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py"
-repository = "https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py.git"
+documentation = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py/-/wikis/home"
+homepage = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py"
+repository = "https://gitlab.com/ub-dems/ds-labs/dve-sample-py.git"
 
 dynamic = ["dependencies"]
 requires-python = ">=3.10,<3.15"

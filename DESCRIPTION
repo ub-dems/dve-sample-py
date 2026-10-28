@@ -1,29 +1,29 @@
 Type: Package
-Package: dvesimplepy
-Title: TODO:title
-Version: 1.0.0.9000
+Package: dvesimpler
+Title: TODO(title): TITLE OF THE RESEARCH WORK
+Version: 1.0.0
 Authors@R: 
-    c(person(given = "datalab",
-             family = "DEMS",
-             role = c("aut", "cre"),
-             email = "datalab@unimib.it",
+    c(person(given = "dsuser",
+             family = "ub-dems",
+             role = c("aut", "cre", "cph"),
+             email = "dsuser@campus.unimib.it",
              comment = c()))
-Description: TODO:description.
-License: GPL-3.0-or-later + file LICENSE.md
+Description: TODO(desc): SHORT DESCRIPTION OF THE RESEARCH WORK
+    see "CITATION.cff" for details.
+License: GPL (>= 3)
 URL: https://www.unimib.it,
-     https://gitlab.com/ub-dems-public/ds-labs/dve-sample-r
-BugReports: https://gitlab.com/ub-dems-public/ds-labs/dve-sample-r/-/issues
+     https://gitlab.com/ub-dems/ds-labs/dve-sample-r
+BugReports: https://gitlab.com/ub-dems/ds-labs/dve-sample-r/-/issues
 Depends: 
-    R (>= 4.4.0)
+    R (>= 4.6.0)
 Imports:
     Rcpp,
     RcppArmadillo,
+    keras3,
     logger,
     glue,
     tidyverse,
     rlang,
-    keras,
-    greta,
     dplyr,
     readr,
     here,
@@ -41,9 +41,12 @@ Suggests:
     optparse,
     cli (>= 3.3.0),
     lintr,
+    duckdb,
     ggplot2,
     ggraph,
     igraph,
+    JuliaCall,
+    JuliaConnectoR,
     logging,
     languageserver,
     gitcreds,
@@ -56,21 +59,30 @@ Suggests:
     assertthat,
     devtools,
     usethis,
-    rspm,
     knitr,
     rmarkdown,
-    roxygen2 (>= 7.3.2),
+    roxygen2 (>= 8.1.0),
     testthat (>= 2.1.0),
     RcppGSL,
     RcppParallel,
     RcppEigen
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel, RcppGSL
 SystemRequirements: GNU Scientific Library (GSL) (>= 2.0)
-Remotes: cran4linux/rspm,
+Remotes: JuliaInterop/JuliaCall
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
 LazyData: yes
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Config/build/copy-method: link
+Config/roxygen2/version: 8.1.1
+Collate: 
+    'RcppExports.R'
+    'dummy-fun.R'
+    'dummy-path.R'
+    'dummy-proc.R'
+    'dvesimpler-package.r'
+    'ioinit.R'
+    'iologs.R'
+    'iopath.R'
+    'ioutils.R'
