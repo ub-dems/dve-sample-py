@@ -3,14 +3,14 @@ FROM ubdems/dve-sample-py.base
 LABEL org.opencontainers.image.vendor="ubdems" \
       org.opencontainers.image.base.name="ubdems/dve-sample-py.base" \
       org.opencontainers.image.title="ubdems/dve-sample-py.runtime" \
-      org.opencontainers.image.source="https://gitlab.com/ub-dems-public/ds-labs/dve-sample-py" \
+      org.opencontainers.image.source="https://gitlab.com/ub-dems/ds-labs/dve-sample-py" \
       org.opencontainers.image.authors="DEMS/datalab <dsuser.dems@gmail.com>" \
       org.opencontainers.image.description="TODO:description" \
       org.opencontainers.image.licenses="GPL-2.0-or-later" \
       it.unimib.datalab.type="project.runtime" \
       it.unimib.datalab.name="dve-sample-py" \
-      it.unimib.datalab.group="ub-dems-public/ds-labs" \
-      it.unimib.datalab.path="ub-dems-public/ds-labs/dve-sample-py" \
+      it.unimib.datalab.group="ub-dems/ds-labs" \
+      it.unimib.datalab.path="ub-dems/ds-labs/dve-sample-py" \
       it.unimib.datalab.schema="dve:1.0" \
       it.unimib.datalab.lang="R" \
       it.unimib.datalab.from="2026-03-16" \

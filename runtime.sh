@@ -90,6 +90,8 @@ where "target" is
   rs ...           : runs Rscript with arguments
   python           : runs interactive ipython console
   pyrun            : runs Python script with arguments
+  julia            : runs interactive Julia console
+  jrun             : runs Julia script with arguments
   run              : runs default autoexec script
   cli ...          : runs executable script with arguments
   test             : runs all unit tests
@@ -101,6 +103,7 @@ where "target" is
   build ...        : runs ./build.sh with arguments inside runtime
   environ ...      : imports user environment
   profile ...      : edit user environment
+  raw              : runs interactive shell prompt (no-virtualenv)
   shell            : runs interactive shell prompt
   bash args,...    : runs shell with args,...
   term             : attach interactive shell to running runtime
@@ -118,6 +121,8 @@ Target aliases:
    rs       => rscript, Rscript
    python   => ipython
    pyrun    => py
+   julia    => ju
+   jrun     => jx
    run      => auto
    cli      => exec
    upgrade  => lock, snapshot
@@ -129,6 +134,7 @@ Target aliases:
    build    => bld, build.sh
    test     => pytest
    check    => validate
+   raw      => base, bare
    shell    => sh, prompt
    bash     => do, command
    term     => in, attach
@@ -324,7 +330,7 @@ workdir:
 
 EOF
 
-exit 1
+exit 0
 
 }
 
@@ -372,6 +378,14 @@ case "${command}" in
         shift
         target=runtime-pyrun
         ;;
+    ju|julia)
+        shift
+        target=runtime-julia
+        ;;
+    jx|jrun)
+        shift
+        target=runtime-jrun
+        ;;
     auto|run)
         shift
         target=runtime-auto
@@ -379,6 +393,10 @@ case "${command}" in
     cli|exec)
         shift
         target=runtime-cli
+        ;;
+    bare|base|raw)
+        shift
+        target=runtime-raw
         ;;
     sh|shell|prompt)
         shift

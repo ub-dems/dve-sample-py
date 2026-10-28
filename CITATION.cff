@@ -26,7 +26,7 @@ authors:
   # Add further authors below using the same structure / Aggiungere altri autori con la stessa struttura
 
 type: software          # or: dataset | article | thesis — select the most appropriate / scegliere il più appropriato
-version: "0.1.0"        # Semantic versioning / Versionamento semantico
+version: "1.0.0"        # Semantic versioning / Versionamento semantico
 date-released: "2026-05-26"   # ISO 8601 date / Data ISO 8601
 
 abstract: >

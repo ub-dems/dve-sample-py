@@ -1,0 +1,176 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0" version="26.0.11">
+  <diagram name="Page-1" id="VJSR91OUhWX24QXCCLen">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GYh_TosT-JpggCfaGtdV-1" value="RemoteContainerRegistry" style="verticalAlign=top;align=left;shape=cube;size=10;direction=south;fontStyle=0;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="90" y="880" width="550" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-2" value="rocker/geospatial" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry width="500" height="180" relative="1" as="geometry">
+            <mxPoint x="30" y="60" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-49" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;RStudio-server&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="211.16571428571427" y="170" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-7" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;R-base&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="73.66571428571429" y="170" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-50" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;tidyverse&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="348.6657142857143" y="170" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-51" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;LaTeX/pandoc&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="73.66571428571429" y="102.41" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-52" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;R-spatial&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="211.16571428571427" y="102.41" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-53" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;...&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry x="348.6657142857143" y="102.41" width="127.67857142857142" height="55.18" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-10" value="&lt;b&gt;ImmutableStorage&lt;/b&gt;: [~/. local/share/containers/storage]" style="verticalAlign=top;align=left;shape=cube;size=10;direction=south;fontStyle=0;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="90" y="510" width="550" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-11" value="Runtime" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry width="170" height="120" relative="1" as="geometry">
+            <mxPoint x="352" y="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-35" value="Cuda" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry width="170" height="100" relative="1" as="geometry">
+            <mxPoint x="352" y="166" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-37" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;NVIDIA cuda/cudnn&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="362.1728571428571" y="203.21812500000001" width="137.5" height="50.53125" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-38" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;project-extras&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="367.0842857142857" y="69.995" width="127.67857142857142" height="74.484375" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-22" value="&lt;div&gt;Base&lt;/div&gt;" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="9.002857142857138" y="59.995" width="314.2857142857142" height="240.625" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-12" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;R reticulate/IRKernel&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="19.99571428571428" y="101.666875" width="136.0955357142857" height="74.484375" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-36" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;node-js&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="167.31714285714284" y="101.666875" width="126.27410714285713" height="74.484375" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-34" value="Anchor" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="347.44142857142856" y="300" width="166.9642857142857" height="40.1078125" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-23" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;python+pynv+poetry&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="19.99571428571428" y="191.245" width="136.0955357142857" height="74.484375" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-39" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;rust, julia (tbd)&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry x="167.31714285714284" y="191.245" width="126.27410714285713" height="74.484375" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.536;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="GYh_TosT-JpggCfaGtdV-10" source="GYh_TosT-JpggCfaGtdV-35" target="GYh_TosT-JpggCfaGtdV-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.649;exitY=0.009;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="GYh_TosT-JpggCfaGtdV-10" source="GYh_TosT-JpggCfaGtdV-22" target="GYh_TosT-JpggCfaGtdV-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.656;exitY=0.991;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="GYh_TosT-JpggCfaGtdV-10" source="GYh_TosT-JpggCfaGtdV-11" target="GYh_TosT-JpggCfaGtdV-22">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="353" y="110" />
+              <mxPoint x="340" y="110" />
+              <mxPoint x="340" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-13" value="&lt;b&gt;MutableStorage: &lt;/b&gt;[~/work/my-project]" style="verticalAlign=top;align=left;shape=cube;size=10;direction=south;fontStyle=0;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="90" y="40" width="560" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-14" value="&lt;b&gt;Project-Data&lt;/b&gt;: &lt;b&gt; &lt;/b&gt;[~/work/my-project/inst/extdata/ext]" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry width="510" height="110" relative="1" as="geometry">
+            <mxPoint x="30" y="40" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-24" value="&lt;b&gt;Project-Code&lt;/b&gt;: &lt;b&gt; &lt;/b&gt;[~/work/my-project]" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry width="510" height="100" relative="1" as="geometry">
+            <mxPoint x="30" y="170" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-25" value="&lt;div&gt;&lt;b&gt;Project-Home&lt;/b&gt;: &lt;b&gt; &lt;/b&gt;[~/work/my-project/home]&lt;/div&gt;" style="verticalAlign=top;align=center;shape=cube;size=10;direction=south;html=1;boundedLbl=1;spacingLeft=5;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry width="510" height="110" relative="1" as="geometry">
+            <mxPoint x="30" y="300" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-15" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;poetry-VirtualEnv&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="45.71285714285714" y="340.0033333333334" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-26" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;=&amp;gt; User-Data&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="40.00285714285714" y="89.99666666666667" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-27" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;=&amp;gt; Local-Data&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="200" y="89.99666666666667" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-28" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;=&amp;gt; Shared-Data&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="360.0028571428571" y="89.99666666666667" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-29" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;Config-Code&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="40.00285714285714" y="210.00104166666665" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-30" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;Package-Code&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="200.00285714285712" y="210.00104166666665" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-31" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;Script-Code&lt;/b&gt;&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="360.0028571428571" y="210.00104166666665" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-33" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;jupyter lab&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="200.0028571428571" y="340.0033333333334" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-32" value="&amp;lt;&amp;lt;deployment spec&amp;gt;&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;renv/rstudio-install&lt;/b&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" vertex="1" parent="GYh_TosT-JpggCfaGtdV-13">
+          <mxGeometry x="360.0028571428571" y="340.0033333333334" width="148.57142857142856" height="52.46895833333333" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.026;entryY=0.501;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="GYh_TosT-JpggCfaGtdV-13" source="GYh_TosT-JpggCfaGtdV-24" target="GYh_TosT-JpggCfaGtdV-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=245.00000000000003;entryPerimeter=0;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-34" target="GYh_TosT-JpggCfaGtdV-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="521" y="910" />
+              <mxPoint x="375" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.013;entryY=0.506;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-13" target="GYh_TosT-JpggCfaGtdV-11">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="490" />
+              <mxPoint x="526" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-63" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;&lt;b&gt;./runtime.sh&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;rstudio&lt;/li&gt;&lt;li&gt;jupyter&lt;/li&gt;&lt;li&gt;R&lt;/li&gt;&lt;li&gt;Rscript&lt;/li&gt;&lt;li&gt;sh&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="690" y="130" width="120" height="148" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-64" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.3;entryY=0.007;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;startFill=0;dashed=1;dashPattern=1 1;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-63" target="GYh_TosT-JpggCfaGtdV-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-65" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;&lt;b&gt;./runtime.sh&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;setup&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="680" y="360" width="120" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-66" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.455;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;dashPattern=1 2;endArrow=none;startFill=0;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-65" target="GYh_TosT-JpggCfaGtdV-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-67" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;&lt;b&gt;./build.sh&lt;/b&gt;&lt;br&gt;&lt;/div&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;setup&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="700" y="570" width="120" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-68" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=170;entryDy=0;entryPerimeter=0;endArrow=none;startFill=0;dashed=1;dashPattern=1 2;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-67" target="GYh_TosT-JpggCfaGtdV-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-70" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startFill=0;dashed=1;dashPattern=1 2;" edge="1" parent="1" source="GYh_TosT-JpggCfaGtdV-69" target="GYh_TosT-JpggCfaGtdV-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GYh_TosT-JpggCfaGtdV-69" value="&amp;nbsp; &lt;b&gt;podman&lt;/b&gt;&lt;br&gt;&lt;ul&gt;&lt;li&gt;pull&lt;/li&gt;&lt;li&gt;build&lt;/li&gt;&lt;/ul&gt;" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="690" y="900" width="120" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

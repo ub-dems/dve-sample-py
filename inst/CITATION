@@ -1,0 +1,12 @@
+
+bibentry(bibtype = "Misc",
+         key = "demsdatalab:2026",
+         title = "TODO(title): TITLE OF THE RESEARCH WORK / TITOLO DEL LAVORO DI RICERCA",
+         author = person(given = "Data Science Lab",
+                         family = "DEMS/datalab",
+                         email = "datalab@unimib.it",
+                         comment = c(ORCID = "0009-0005-1409-4209", affiliation = "Department of Economics, Management and Statistics DEMS, University of Milano-Bicocca")),
+         year = "2026",
+         abstract = "TODO(abstract): Short abstract (2–5 sentences) describing the research question, methods, and expected outputs. / Breve abstract (2-5 frasi) che descrive la domanda di ricerca, i metodi e gli output attesi.",
+         keywords = "keyword-1,keyword-2,keyword-3",
+         version = "1.0.0")

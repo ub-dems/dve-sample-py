@@ -1,0 +1,3 @@
+[RCall]
+Rhome = "/usr/local/lib/R"
+libR = "/usr/local/lib/R/lib/libR.so"

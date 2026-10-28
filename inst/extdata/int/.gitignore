@@ -1,0 +1,7 @@
+!.gitignore
+!*.Rmd
+!*.md
+!*.csv
+!*.tsv
+!*.xlsx
+
