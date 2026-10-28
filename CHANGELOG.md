@@ -12,6 +12,23 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
+## [3.2610.0] - 2026-10-28
+
+### Added
+
+- Julia Language
+- Julia, Python, R interoperability
+
+### Changed
+
+- notebooks relocation
+
+### Removed
+
+- python "data" base directory
+- python "sphinx" documentation
+
+
 ## [3.2608.0] - 2026-10-12
 
 ### Added
